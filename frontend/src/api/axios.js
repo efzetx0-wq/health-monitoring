@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://zoo-franchise-metric-moderators.trycloudflare.com/api",
+  baseURL: "health-monitoring-production.up.railway.app/api",
 });
 
 api.interceptors.request.use((config) => {
@@ -18,4 +18,3 @@ api.interceptors.request.use((config) => {
 
 export default api;
 
-//https://personally-changes-agent-clark.trycloudflare.com/api
