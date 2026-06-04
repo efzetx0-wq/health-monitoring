@@ -92,16 +92,25 @@ export default function Sidebar() {
       name: "Reminders",
       path: "/reminders",
       icon: <FaBell />
+    },
+
+    {
+      name: "Logout",
+      logout: true,
+      icon: <FaSignOutAlt />
     }
+
   ];
 
   return (
 
     <div
       className="
-        w-72
-        max-w-[85vw]
-        min-h-screen
+        w-280px
+        max-w-[80vw]
+
+        h-screen
+        overflow-y-auto
 
         bg-white
 
@@ -116,79 +125,133 @@ export default function Sidebar() {
 
         flex
         flex-col
-        justify-between
       "
     >
 
-      <div>
+      {/* LOGO */}
+      <div
+        className="
+          flex
+          items-center
+          gap-4
+          mb-10
+        "
+      >
 
-        {/* LOGO */}
         <div
           className="
-            flex
-            items-center
-            gap-4
-            mb-12
+            bg-blue-600
+
+            p-3
+
+            rounded-2xl
+
+            shadow-lg
           "
         >
 
-          <div
-            className="
-              bg-linear-to-br
-              from-cyan-400
-              to-blue-500
-
-              p-3
-
-              rounded-2xl
-
-              shadow-lg
-            "
-          >
-
-            <HeartPulse size={28} color="white" />
-
-          </div>
-
-          <div>
-
-            <h1
-              className="
-                text-2xl
-                font-extrabold
-                tracking-wide
-              "
-            >
-
-              Health App
-
-            </h1>
-
-            <p
-              className="
-                text-gray-500
-                text-sm
-              "
-            >
-
-              Monitoring System
-
-            </p>
-
-          </div>
+          <HeartPulse
+            size={28}
+            color="white"
+          />
 
         </div>
 
-        {/* MENU */}
-        <nav
-          className="
-            flex
-            flex-col
-            gap-3
-          "
-        >
+        <div>
 
-          {menus.map((menu, index) => (
+          <h1
+            className="
+              text-2xl
+              font-extrabold
+              tracking-wide
+            "
+          >
+
+            Health App
+
+          </h1>
+
+          <p
+            className="
+              text-gray-500
+              text-sm
+            "
+          >
+
+            Monitoring System
+
+          </p>
+
+        </div>
+
+      </div>
+
+      {/* MENU */}
+      <nav
+        className="
+          flex
+          flex-col
+          gap-3
+        "
+      >
+
+        {menus.map((menu, index) => (
+
+          menu.logout ? (
+
+            <button
+              key={index}
+              onClick={handleLogout}
+              className="
+                group
+
+                flex
+                items-center
+                gap-4
+
+                p-4
+
+                rounded-2xl
+
+                bg-gray-50
+
+                text-gray-700
+
+                hover:bg-red-500
+                hover:text-white
+
+                transition-all
+                duration-300
+
+                w-full
+              "
+            >
+
+              <div
+                className="
+                  text-xl
+                  transition
+                "
+              >
+
+                {menu.icon}
+
+              </div>
+
+              <span
+                className="
+                  font-medium
+                  tracking-wide
+                "
+              >
+
+                {menu.name}
+
+              </span>
+
+            </button>
+
+          ) : (
 
             <Link
               key={index}
@@ -245,120 +308,68 @@ export default function Sidebar() {
 
             </Link>
 
-          ))}
+          )
 
-        </nav>
+        ))}
 
-      </div>
+      </nav>
 
-      {/* BOTTOM */}
-      <div>
+      {/* INFO CARD */}
+      <div
+        className="
+          mt-8
 
-        {/* FOOTER */}
-        <div
+          bg-gray-50
+
+          p-5
+
+          rounded-2xl
+
+          border
+          border-gray-200
+        "
+      >
+
+        <p
           className="
-            bg-gray-50
-
-            p-5
-
-            rounded-2xl
-
-            border
-            border-gray-200
-
-            mb-5
+            text-sm
+            text-gray-500
+            mb-2
           "
         >
 
-          <p
-            className="
-              text-sm
-              text-gray-500
-              mb-2
-            "
-          >
+          Health Monitoring Platform
 
-            Health Monitoring Platform
+        </p>
 
-          </p>
+        <div
+          className="
+            w-full
+
+            bg-gray-200
+
+            h-2
+
+            rounded-full
+
+            overflow-hidden
+          "
+        >
 
           <div
             className="
-              w-full
+              h-full
+              w-3/4
 
-              bg-gray-200
-
-              h-2
+              bg-blue-500
 
               rounded-full
 
-              overflow-hidden
+              animate-pulse
             "
-          >
-
-            <div
-              className="
-                h-full
-                w-3/4
-
-                bg-linear-to-br
-                from-cyan-400
-                to-blue-500
-
-                rounded-full
-
-                animate-pulse
-              "
-            ></div>
-
-          </div>
+          ></div>
 
         </div>
-
-        {/* LOGOUT */}
-        <button
-          onClick={handleLogout}
-          className="
-            group
-
-            w-full
-
-            flex
-            items-center
-            justify-center
-            gap-3
-
-            bg-gray-50
-
-            hover:bg-red-500
-            hover:text-white
-
-            p-4
-
-            rounded-2xl
-
-            font-semibold
-
-            transition-all
-            duration-300
-          "
-        >
-
-          <FaSignOutAlt
-            className="
-              text-lg
-              group-hover:rotate-12
-              transition
-            "
-          />
-
-          <span>
-
-            Logout
-
-          </span>
-
-        </button>
 
       </div>
 
