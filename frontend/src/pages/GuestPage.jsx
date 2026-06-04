@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Link
 } from "react-router-dom";
@@ -8,10 +9,14 @@ import {
   ShieldCheck,
   Moon,
   ChartColumn,
-  Bell
+  Bell,
+  Menu,
+  X
 } from "lucide-react";
 
 export default function GuestPage() {
+  // State untuk membuka/tutup menu navigasi di mobile tanpa mengubah menu desktop
+  const [menuTerbuka, setMenuTerbuka] = useState(false);
 
   return (
 
@@ -38,7 +43,8 @@ export default function GuestPage() {
         <div className="
           max-w-7xl
           mx-auto
-          px-6
+          px-4
+          md:px-6
           py-4
           flex
           items-center
@@ -64,7 +70,8 @@ export default function GuestPage() {
             </div>
 
             <h1 className="
-              text-2xl
+              text-xl
+              sm:text-2xl
               font-bold
               text-gray-800
             ">
@@ -75,10 +82,10 @@ export default function GuestPage() {
 
           </div>
 
-          {/* MENU */}
+          {/* MENU DESKTOP */}
           <div className="
             hidden
-            md:flex
+            lg:flex
             items-center
             gap-8
             text-gray-600
@@ -123,9 +130,10 @@ export default function GuestPage() {
 
           </div>
 
-          {/* AUTH BUTTON */}
+          {/* AUTH BUTTON DESKTOP */}
           <div className="
-            flex
+            hidden
+            sm:flex
             items-center
             gap-4
           ">
@@ -137,8 +145,10 @@ export default function GuestPage() {
                 border-blue-600
                 text-blue-600
                 hover:bg-blue-50
-                px-6
-                py-3
+                px-4
+                lg:px-6
+                py-2.5
+                lg:py-3
                 rounded-xl
                 transition
                 font-medium
@@ -155,8 +165,10 @@ export default function GuestPage() {
                 bg-blue-600
                 hover:bg-blue-700
                 text-white
-                px-6
-                py-3
+                px-4
+                lg:px-6
+                py-2.5
+                lg:py-3
                 rounded-xl
                 transition
                 shadow-lg
@@ -170,7 +182,38 @@ export default function GuestPage() {
 
           </div>
 
+          {/* TOMBOL MENU KHUSUS MOBILE (MUNCUL DI LAYAR KECIL) */}
+          <div className="flex sm:hidden items-center">
+            <button
+              onClick={() => setMenuTerbuka(!menuTerbuka)}
+              className="text-gray-600 focus:outline-none p-1"
+            >
+              {menuTerbuka ? <X size={26} /> : <Menu size={26} />}
+            </button>
+          </div>
+
         </div>
+
+        {/* DRAWER MENU MOBILE (MUNCUL SAAT TOMBOL MENU DI-KLIK PADA HP) */}
+        {menuTerbuka && (
+          <div className="sm:hidden bg-white border-t border-gray-100 px-6 py-6 space-y-4 shadow-xl">
+            <div className="flex flex-col gap-4 text-gray-600 font-medium">
+              <a href="#home" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Home</a>
+              <a href="#features" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Features</a>
+              <a href="#statistics" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Statistics</a>
+              <a href="#footer" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Contact</a>
+            </div>
+            <hr className="border-gray-100my-2" />
+            <div className="flex flex-col gap-3">
+              <Link to="/login" onClick={() => setMenuTerbuka(false)} className="border border-blue-600 text-blue-600 text-center py-2.5 rounded-xl font-medium">
+                Login
+              </Link>
+              <Link to="/register" onClick={() => setMenuTerbuka(false)} className="bg-blue-600 text-white text-center py-2.5 rounded-xl font-medium shadow-lg">
+                Sign Up
+              </Link>
+            </div>
+          </div>
+        )}
 
       </nav>
 
@@ -178,9 +221,12 @@ export default function GuestPage() {
       <section
         id="home"
         className="
-          pt-40
-          pb-28
-          px-6
+          pt-32
+          md:pt-40
+          pb-16
+          md:pb-28
+          px-4
+          md:px-6
         "
       >
 
@@ -206,6 +252,8 @@ export default function GuestPage() {
               rounded-full
               font-medium
               mb-6
+              text-sm
+              md:text-base
             ">
 
               Smart Healthcare Platform
@@ -213,7 +261,9 @@ export default function GuestPage() {
             </div>
 
             <h1 className="
-              text-5xl
+              text-3xl
+              sm:text-4xl
+              md:text-5xl
               lg:text-6xl
               font-extrabold
               text-gray-800
@@ -233,8 +283,10 @@ export default function GuestPage() {
             </h1>
 
             <p className="
-              mt-8
-              text-lg
+              mt-4
+              md:mt-8
+              text-base
+              md:text-lg
               text-gray-600
               leading-relaxed
               max-w-2xl
@@ -252,7 +304,8 @@ export default function GuestPage() {
               flex
               flex-wrap
               gap-4
-              mt-10
+              mt-6
+              md:mt-10
             ">
 
               <Link
@@ -261,10 +314,13 @@ export default function GuestPage() {
                   bg-blue-600
                   hover:bg-blue-700
                   text-white
-                  px-8
-                  py-4
+                  px-6
+                  md:px-8
+                  py-3
+                  md:py-4
                   rounded-2xl
-                  text-lg
+                  text-base
+                  md:text-lg
                   font-semibold
                   transition
                   shadow-xl
@@ -282,10 +338,13 @@ export default function GuestPage() {
                   border
                   border-gray-300
                   hover:border-blue-500
-                  px-8
-                  py-4
+                  px-6
+                  md:px-8
+                  py-3
+                  md:py-4
                   rounded-2xl
-                  text-lg
+                  text-base
+                  md:text-lg
                   font-semibold
                   transition
                 "
@@ -300,39 +359,45 @@ export default function GuestPage() {
           </div>
 
           {/* RIGHT */}
-          <div className="relative">
+          <div className="relative w-full max-w-md mx-auto lg:max-w-none">
 
             <div className="
               bg-white
               rounded-3xl
               shadow-2xl
-              p-8
+              p-5
+              md:p-8
               border
             ">
 
               <div className="
                 grid
-                grid-cols-2
-                gap-6
+                grid-cols-1
+                sm:grid-cols-2
+                gap-4
+                md:gap-6
               ">
 
                 <div className="
                   bg-blue-50
-                  p-6
+                  p-5
+                  md:p-6
                   rounded-2xl
                 ">
 
                   <Activity
                     className="
                       text-blue-600
-                      mb-4
+                      mb-3
+                      md:mb-4
                     "
                     size={40}
                   />
 
                   <h3 className="
                     font-bold
-                    text-lg
+                    text-base
+                    md:text-lg
                   ">
 
                     Activity
@@ -341,7 +406,10 @@ export default function GuestPage() {
 
                   <p className="
                     text-gray-600
-                    mt-2
+                    text-sm
+                    md:text-base
+                    mt-1
+                    md:mt-2
                   ">
 
                     Daily health tracking
@@ -352,21 +420,24 @@ export default function GuestPage() {
 
                 <div className="
                   bg-green-50
-                  p-6
+                  p-5
+                  md:p-6
                   rounded-2xl
                 ">
 
                   <Moon
                     className="
                       text-green-600
-                      mb-4
+                      mb-3
+                      md:mb-4
                     "
                     size={40}
                   />
 
                   <h3 className="
                     font-bold
-                    text-lg
+                    text-base
+                    md:text-lg
                   ">
 
                     Sleep
@@ -375,7 +446,10 @@ export default function GuestPage() {
 
                   <p className="
                     text-gray-600
-                    mt-2
+                    text-sm
+                    md:text-base
+                    mt-1
+                    md:mt-2
                   ">
 
                     Monitor sleep quality
@@ -386,21 +460,24 @@ export default function GuestPage() {
 
                 <div className="
                   bg-purple-50
-                  p-6
+                  p-5
+                  md:p-6
                   rounded-2xl
                 ">
 
                   <ChartColumn
                     className="
                       text-purple-600
-                      mb-4
+                      mb-3
+                      md:mb-4
                     "
                     size={40}
                   />
 
                   <h3 className="
                     font-bold
-                    text-lg
+                    text-base
+                    md:text-lg
                   ">
 
                     Reports
@@ -409,7 +486,10 @@ export default function GuestPage() {
 
                   <p className="
                     text-gray-600
-                    mt-2
+                    text-sm
+                    md:text-base
+                    mt-1
+                    md:mt-2
                   ">
 
                     Smart health analytics
@@ -420,21 +500,24 @@ export default function GuestPage() {
 
                 <div className="
                   bg-red-50
-                  p-6
+                  p-5
+                  md:p-6
                   rounded-2xl
                 ">
 
                   <Bell
                     className="
                       text-red-600
-                      mb-4
+                      mb-3
+                      md:mb-4
                     "
                     size={40}
                   />
 
                   <h3 className="
                     font-bold
-                    text-lg
+                    text-base
+                    md:text-lg
                   ">
 
                     Reminder
@@ -443,7 +526,10 @@ export default function GuestPage() {
 
                   <p className="
                     text-gray-600
-                    mt-2
+                    text-sm
+                    md:text-base
+                    mt-1
+                    md:mt-2
                   ">
 
                     Health notifications
@@ -466,8 +552,10 @@ export default function GuestPage() {
       <section
         id="features"
         className="
-          py-24
-          px-6
+          py-16
+          md:py-24
+          px-4
+          md:px-6
         "
       >
 
@@ -478,11 +566,13 @@ export default function GuestPage() {
 
           <div className="
             text-center
-            mb-16
+            mb-12
+            md:mb-16
           ">
 
             <h2 className="
-              text-4xl
+              text-3xl
+              md:text-4xl
               font-bold
               text-gray-800
             ">
@@ -493,8 +583,10 @@ export default function GuestPage() {
 
             <p className="
               text-gray-600
-              mt-4
-              text-lg
+              mt-3
+              md:mt-4
+              text-base
+              md:text-lg
             ">
 
               Everything you need
@@ -509,7 +601,8 @@ export default function GuestPage() {
             grid-cols-1
             md:grid-cols-2
             lg:grid-cols-3
-            gap-8
+            gap-6
+            md:gap-8
           ">
 
             {[
@@ -535,7 +628,8 @@ export default function GuestPage() {
                 className="
                   bg-white
                   rounded-3xl
-                  p-8
+                  p-6
+                  md:p-8
                   shadow-lg
                   hover:-translate-y-2
                   transition
@@ -544,7 +638,8 @@ export default function GuestPage() {
 
                 <div className="
                   text-blue-600
-                  mb-6
+                  mb-4
+                  md:mb-6
                 ">
 
                   {item.icon}
@@ -552,9 +647,11 @@ export default function GuestPage() {
                 </div>
 
                 <h3 className="
-                  text-2xl
+                  text-xl
+                  md:text-2xl
                   font-bold
-                  mb-4
+                  mb-3
+                  md:mb-4
                 ">
 
                   {item.title}
@@ -563,6 +660,8 @@ export default function GuestPage() {
 
                 <p className="
                   text-gray-600
+                  text-sm
+                  md:text-base
                   leading-relaxed
                 ">
 
@@ -584,7 +683,8 @@ export default function GuestPage() {
       <section
         id="statistics"
         className="
-          py-24
+          py-16
+          md:py-24
           bg-blue-600
           text-white
         "
@@ -593,18 +693,21 @@ export default function GuestPage() {
         <div className="
           max-w-6xl
           mx-auto
-          px-6
+          px-4
+          md:px-6
           grid
           grid-cols-1
           md:grid-cols-3
-          gap-12
+          gap-10
+          md:gap-12
           text-center
         ">
 
           <div>
 
             <h2 className="
-              text-5xl
+              text-4xl
+              md:text-5xl
               font-extrabold
             ">
 
@@ -613,8 +716,10 @@ export default function GuestPage() {
             </h2>
 
             <p className="
-              mt-4
-              text-xl
+              mt-2
+              md:mt-4
+              text-lg
+              md:text-xl
             ">
 
               Active Users
@@ -626,7 +731,8 @@ export default function GuestPage() {
           <div>
 
             <h2 className="
-              text-5xl
+              text-4xl
+              md:text-5xl
               font-extrabold
             ">
 
@@ -635,8 +741,10 @@ export default function GuestPage() {
             </h2>
 
             <p className="
-              mt-4
-              text-xl
+              mt-2
+              md:mt-4
+              text-lg
+              md:text-xl
             ">
 
               Health Reports
@@ -648,7 +756,8 @@ export default function GuestPage() {
           <div>
 
             <h2 className="
-              text-5xl
+              text-4xl
+              md:text-5xl
               font-extrabold
             ">
 
@@ -657,8 +766,10 @@ export default function GuestPage() {
             </h2>
 
             <p className="
-              mt-4
-              text-xl
+              mt-2
+              md:mt-4
+              text-lg
+              md:text-xl
             ">
 
               Monitoring Support
@@ -673,8 +784,10 @@ export default function GuestPage() {
 
       {/* CTA */}
       <section className="
-        py-24
-        px-6
+        py-16
+        md:py-24
+        px-4
+        md:px-6
       ">
 
         <div className="
@@ -683,12 +796,15 @@ export default function GuestPage() {
           bg-white
           rounded-3xl
           shadow-2xl
-          p-12
+          p-6
+          md:p-12
           text-center
+          border
         ">
 
           <h2 className="
-            text-4xl
+            text-2xl
+            md:text-4xl
             font-bold
             text-gray-800
           ">
@@ -698,8 +814,10 @@ export default function GuestPage() {
           </h2>
 
           <p className="
-            mt-6
-            text-lg
+            mt-4
+            md:mt-6
+            text-base
+            md:text-lg
             text-gray-600
           ">
 
@@ -712,14 +830,18 @@ export default function GuestPage() {
             to="/register"
             className="
               inline-block
-              mt-10
+              mt-8
+              md:mt-10
               bg-blue-600
               hover:bg-blue-700
               text-white
-              px-10
-              py-4
+              px-8
+              md:px-10
+              py-3
+              md:py-4
               rounded-2xl
-              text-lg
+              text-base
+              md:text-lg
               font-semibold
               transition
               shadow-xl
@@ -741,7 +863,8 @@ export default function GuestPage() {
           bg-gray-900
           text-white
           py-10
-          px-6
+          px-4
+          md:px-6
         "
       >
 
@@ -754,6 +877,8 @@ export default function GuestPage() {
           items-center
           justify-between
           gap-6
+          text-center
+          md:text-left
         ">
 
           <div>
@@ -769,6 +894,7 @@ export default function GuestPage() {
 
             <p className="
               text-gray-400
+              text-sm
               mt-2
             ">
 
@@ -780,6 +906,7 @@ export default function GuestPage() {
 
           <p className="
             text-gray-400
+            text-sm
           ">
 
             © 2026 Health Monitoring.

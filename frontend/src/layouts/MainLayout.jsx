@@ -1,9 +1,16 @@
 import Sidebar from "../components/Sidebar";
-import MobileNav from "../components/MobileNav";
 import ReminderChecker from "../components/ReminderChecker";
 
 import { useEffect, useState } from "react";
-import { getReminders } from "../services/reminderService";
+
+import {
+  FaBars,
+  FaTimes
+} from "react-icons/fa";
+
+import {
+  getReminders
+} from "../services/reminderService";
 
 export default function MainLayout({
   children
@@ -11,6 +18,11 @@ export default function MainLayout({
 
   const [reminders, setReminders] =
     useState([]);
+
+  const [
+    mobileSidebarOpen,
+    setMobileSidebarOpen
+  ] = useState(false);
 
   useEffect(() => {
 
@@ -63,21 +75,108 @@ export default function MainLayout({
         reminders={reminders}
       />
 
+      {/* HAMBURGER MOBILE */}
+      <button
+        onClick={() =>
+          setMobileSidebarOpen(true)
+        }
+        className="
+          md:hidden
+          fixed
+          top-4
+          left-4
+          z-50
+          bg-blue-600
+          text-white
+          p-3
+          rounded-xl
+          shadow-lg
+        "
+      >
+
+        <FaBars />
+
+      </button>
+
+      {/* OVERLAY */}
+      {mobileSidebarOpen && (
+
+        <div
+          className="
+            md:hidden
+            fixed
+            inset-0
+            bg-black/50
+            z-40
+          "
+          onClick={() =>
+            setMobileSidebarOpen(false)
+          }
+        />
+
+      )}
+
+      {/* SIDEBAR MOBILE */}
+      <div
+        className={`
+          md:hidden
+          fixed
+          top-0
+          left-0
+          h-full
+          z-50
+          transition-transform
+          duration-300
+          ${
+            mobileSidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+        `}
+      >
+
+        <div className="relative">
+
+          {/* CLOSE BUTTON */}
+          <button
+            onClick={() =>
+              setMobileSidebarOpen(false)
+            }
+            className="
+              absolute
+              top-4
+              right-4
+              z-50
+              bg-red-500
+              text-white
+              p-2
+              rounded-lg
+            "
+          >
+
+            <FaTimes />
+
+          </button>
+
+          <Sidebar />
+
+        </div>
+
+      </div>
+
       <div className="flex">
 
-        {/* Sidebar Desktop */}
+        {/* SIDEBAR DESKTOP */}
         <div className="hidden md:block">
 
           <Sidebar />
 
         </div>
 
-        {/* Content */}
+        {/* CONTENT */}
         <div
           className="
             flex-1
-            pb-20
-            md:pb-0
           "
         >
 
@@ -87,13 +186,6 @@ export default function MainLayout({
 
       </div>
 
-      {/* Bottom Navigation Mobile */}
-      <div className="md:hidden">
-
-        <MobileNav />
-
-      </div>
-
     </div>
-  )
+  );
 }
