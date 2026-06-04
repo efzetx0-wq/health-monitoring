@@ -108,9 +108,9 @@ export default function Sidebar() {
       className="
         w-[60vw]
 
-        min-w-[240px]
+        min-w-240px
 
-        md:w-[280px]
+        md:w-280px
 
         h-screen
         overflow-y-auto
