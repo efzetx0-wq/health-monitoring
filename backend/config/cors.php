@@ -15,13 +15,14 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['*'], // Mengizinkan Vercel dan semua domain luar
+    'allowed_origins' => ['https://health-monitoring-peach.vercel.app'], // Isi dengan URL Vercel lengkap pakai https://
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
-    'supports_credentials' => true,
+    'supports_credentials' => true, // <--- WAJIB TRUE agar cookie Sanctum bisa lewat
 
 ];
