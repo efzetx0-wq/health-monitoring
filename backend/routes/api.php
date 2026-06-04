@@ -15,20 +15,25 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\MedicalController;
 use App\Http\Controllers\Api\GoogleFitController;
 
+// ==============================================================================
 // --- RUTE PUBLIK (Bisa diakses tanpa login) ---
+// ==============================================================================
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Di dalam file routes/api.php milik Laravel
-// Ganti baris GoogleFit sebelumnya menjadi tiga baris ini:
-// GANTI TIGA BARIS GOOGLE FIT LAMA ANDA MENJADI SEPERTI INI:
-Route::get('/fit-kesehatan/auth', [GoogleFitController::class, 'auth']);
-Route::get('/google-fit/callback', [GoogleFitController::class, 'callback']); // Tetap biarkan ini
-Route::get('/google-fit/sync', [GoogleFitController::class, 'sync']);
+// Rute autentikasi Google Fit (Harus Publik karena dipanggil via window.location.href)
+Route::get('/google-fit/auth', [GoogleFitController::class, 'auth']); // SINKRON DENGAN FRONTEND
+Route::get('/google-fit/callback', [GoogleFitController::class, 'callback']); 
 
-// --- RUTE TERPROTEKSI (Wajib membawa Token Bearer) ---
+
+// ==============================================================================
+// --- RUTE TERPROTEKSI (Wajib login / membawa Cookie & Token Sanctum) ---
+// ==============================================================================
 Route::middleware('auth:sanctum')->group(function () {
+
+    // PENTING: Rute Sync Google Fit WAJIB di dalam sini karena butuh data Auth::id()
+    Route::get('/google-fit/sync', [GoogleFitController::class, 'sync']);
 
     // Rute bawaan user info
     Route::get('/user', function (Request $request) {
@@ -50,46 +55,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/food-diaries', [FoodDiaryController::class, 'store']);
     Route::delete('/food-diaries/{id}', [FoodDiaryController::class, 'destroy']);
     
-    // Pelacakan Tidur (DIUBAH: Sekarang aman di dalam middleware auth)
+    // Pelacakan Tidur
     Route::apiResource('sleep-trackings', SleepTrackingController::class);
 
     Route::apiResource('vital-signs', VitalSignController::class);
 
-    Route::apiResource('daily-targets',DailyTargetController::class);
+    Route::apiResource('daily-targets', DailyTargetController::class);
 
-    Route::get('daily-progress',[DailyTargetController::class, 'progress']);
+    Route::get('daily-progress', [DailyTargetController::class, 'progress']);
 
     Route::apiResource('reminders', ReminderController::class);
 
-    Route::get('generate-weekly-report',[HealthReportController::class,'generateWeeklyReport']);
+    Route::get('generate-weekly-report', [HealthReportController::class, 'generateWeeklyReport']);
     
-    Route::get('health-reports',[HealthReportController::class,'index']);
+    Route::get('health-reports', [HealthReportController::class, 'index']);
 
-    Route::delete('health-reports/{id}',[HealthReportController::class,'destroy']);
+    Route::delete('health-reports/{id}', [HealthReportController::class, 'destroy']);
 
     Route::get('/medical/patients', [MedicalController::class, 'patients']);
 
-    Route::get(
-    '/admin/users',
-    [AdminUserController::class, 'index']
-    );
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
 
-    Route::put(
-        '/admin/users/{id}/role',
-        [AdminUserController::class, 'updateRole']
-    );
+    Route::put('/admin/users/{id}/role', [AdminUserController::class, 'updateRole']);
 
-    Route::delete(
-        '/admin/users/{id}',
-        [AdminUserController::class, 'destroy']
-    );
+    Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
 
-    Route::get(
-    '/medical/patient/{id}',
-    [MedicalController::class,
-    'patientDetail']
-    );
-    
-    
+    Route::get('/medical/patient/{id}', [MedicalController::class, 'patientDetail']);
 });
-
