@@ -104,13 +104,9 @@ export default function Sidebar() {
 
   return (
 
-    <div
+      <div
       className="
-        w-[60vw]
-
-        min-w-240px
-
-        md:w-280px
+        w-72
 
         h-screen
         overflow-y-auto
