@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Link
 } from "react-router-dom";
@@ -9,14 +8,10 @@ import {
   ShieldCheck,
   Moon,
   ChartColumn,
-  Bell,
-  Menu,
-  X
+  Bell
 } from "lucide-react";
 
 export default function GuestPage() {
-  // State untuk membuka/tutup menu navigasi di mobile tanpa mengubah menu desktop
-  const [menuTerbuka, setMenuTerbuka] = useState(false);
 
   return (
 
@@ -28,7 +23,7 @@ export default function GuestPage() {
       to-blue-100
     ">
 
-      {/* NAVBAR */}
+      {/* NAVBAR (DIBUAT LENTUR UNTUK SEMUA UKURAN LAYAR) */}
       <nav className="
         fixed
         top-0
@@ -43,37 +38,45 @@ export default function GuestPage() {
         <div className="
           max-w-7xl
           mx-auto
-          px-4
-          md:px-6
-          py-4
+          px-3
+          sm:px-6
+          py-3
+          sm:py-4
           flex
+          flex-col
+          sm:flex-row
           items-center
           justify-between
+          gap-3
+          sm:gap-0
         ">
 
           {/* LOGO */}
           <div className="
             flex
             items-center
-            gap-3
+            gap-2
+            sm:gap-3
           ">
 
             <div className="
               bg-blue-600
               text-white
-              p-2
+              p-1.5
+              sm:p-2
               rounded-xl
             ">
 
-              <HeartPulse size={24} />
+              <HeartPulse size={20} className="sm:w-6 sm:h-6" />
 
             </div>
 
             <h1 className="
-              text-xl
+              text-lg
               sm:text-2xl
               font-bold
               text-gray-800
+              whitespace-nowrap
             ">
 
               Health Monitoring
@@ -82,14 +85,21 @@ export default function GuestPage() {
 
           </div>
 
-          {/* MENU DESKTOP */}
+          {/* MENU (TETAP MUNCUL DI MOBILE & DESKTOP - BERJEJER DI TENAH) */}
           <div className="
-            hidden
-            lg:flex
+            flex
             items-center
-            gap-8
+            gap-3
+            xs:gap-4
+            sm:gap-8
             text-gray-600
             font-medium
+            text-xs
+            sm:text-base
+            overflow-x-auto
+            max-w-full
+            whitespace-nowrap
+            scrollbar-none
           ">
 
             <a
@@ -130,12 +140,12 @@ export default function GuestPage() {
 
           </div>
 
-          {/* AUTH BUTTON DESKTOP */}
+          {/* AUTH BUTTON (BERJEJER LANGSUNG DI NAVBARR SEBELAH MENU) */}
           <div className="
-            hidden
-            sm:flex
+            flex
             items-center
-            gap-4
+            gap-2
+            sm:gap-4
           ">
 
             <Link
@@ -145,13 +155,17 @@ export default function GuestPage() {
                 border-blue-600
                 text-blue-600
                 hover:bg-blue-50
-                px-4
-                lg:px-6
-                py-2.5
-                lg:py-3
-                rounded-xl
+                px-3
+                sm:px-6
+                py-1.5
+                sm:py-3
+                rounded-lg
+                sm:rounded-xl
                 transition
                 font-medium
+                text-xs
+                sm:text-base
+                whitespace-nowrap
               "
             >
 
@@ -165,14 +179,18 @@ export default function GuestPage() {
                 bg-blue-600
                 hover:bg-blue-700
                 text-white
-                px-4
-                lg:px-6
-                py-2.5
-                lg:py-3
-                rounded-xl
+                px-3
+                sm:px-6
+                py-1.5
+                sm:py-3
+                rounded-lg
+                sm:rounded-xl
                 transition
                 shadow-lg
                 font-medium
+                text-xs
+                sm:text-base
+                whitespace-nowrap
               "
             >
 
@@ -182,38 +200,7 @@ export default function GuestPage() {
 
           </div>
 
-          {/* TOMBOL MENU KHUSUS MOBILE (MUNCUL DI LAYAR KECIL) */}
-          <div className="flex sm:hidden items-center">
-            <button
-              onClick={() => setMenuTerbuka(!menuTerbuka)}
-              className="text-gray-600 focus:outline-none p-1"
-            >
-              {menuTerbuka ? <X size={26} /> : <Menu size={26} />}
-            </button>
-          </div>
-
         </div>
-
-        {/* DRAWER MENU MOBILE (MUNCUL SAAT TOMBOL MENU DI-KLIK PADA HP) */}
-        {menuTerbuka && (
-          <div className="sm:hidden bg-white border-t border-gray-100 px-6 py-6 space-y-4 shadow-xl">
-            <div className="flex flex-col gap-4 text-gray-600 font-medium">
-              <a href="#home" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Home</a>
-              <a href="#features" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Features</a>
-              <a href="#statistics" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Statistics</a>
-              <a href="#footer" onClick={() => setMenuTerbuka(false)} className="hover:text-blue-600 transition">Contact</a>
-            </div>
-            <hr className="border-gray-100my-2" />
-            <div className="flex flex-col gap-3">
-              <Link to="/login" onClick={() => setMenuTerbuka(false)} className="border border-blue-600 text-blue-600 text-center py-2.5 rounded-xl font-medium">
-                Login
-              </Link>
-              <Link to="/register" onClick={() => setMenuTerbuka(false)} className="bg-blue-600 text-white text-center py-2.5 rounded-xl font-medium shadow-lg">
-                Sign Up
-              </Link>
-            </div>
-          </div>
-        )}
 
       </nav>
 
@@ -221,8 +208,8 @@ export default function GuestPage() {
       <section
         id="home"
         className="
-          pt-32
-          md:pt-40
+          pt-44
+          sm:pt-40
           pb-16
           md:pb-28
           px-4
