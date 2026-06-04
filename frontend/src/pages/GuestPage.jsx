@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"; // KITA TAMBAHKAN useEffect UNTUK DETECTION SCROLL
 import {
   Link
 } from "react-router-dom";
@@ -12,6 +13,33 @@ import {
 } from "lucide-react";
 
 export default function GuestPage() {
+  // 1. STATE UNTUK MENGONTROL NAVBARR SEMBUNYI / MUNCUL
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // 2. LOGIKA DETEKSI ARAH SCROLL
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== "undefined") {
+        if (window.scrollY > lastScrollY && window.scrollY > 80) {
+          // Jika scroll ke bawah dan sudah melewati tinggi navbar, Sembunyikan
+          setShowNavbar(false);
+        } else {
+          // Jika scroll ke atas, Munculkan kembali
+          setShowNavbar(true);
+        }
+        // Simpan posisi scroll terakhir
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener("scroll", controlNavbar);
+
+    // Bersihkan event listener saat komponen tidak digunakan
+    return () => {
+      window.removeEventListener("scroll", controlNavbar);
+    };
+  }, [lastScrollY]);
 
   return (
 
@@ -23,8 +51,8 @@ export default function GuestPage() {
       to-blue-100
     ">
 
-      {/* NAVBAR (DIBUAT LENTUR UNTUK SEMUA UKURAN LAYAR) */}
-      <nav className="
+      {/* NAVBAR DENGAN FITUR AUTO-HIDE TRANSLISI */}
+      <nav className={`
         fixed
         top-0
         left-0
@@ -33,73 +61,152 @@ export default function GuestPage() {
         bg-white/80
         backdrop-blur-md
         shadow-sm
-      ">
+        transition-transform
+        duration-300
+        ${showNavbar ? "translate-y-0" : "-translate-y-full"}
+      `}>
 
+        {/* STRUKTUR UTAMA NAVBAR */}
         <div className="
           max-w-7xl
           mx-auto
-          px-3
-          sm:px-6
+          px-4
           py-3
-          sm:py-4
           flex
           flex-col
           sm:flex-row
-          items-center
+          sm:items-center
           justify-between
-          gap-3
+          gap-2
           sm:gap-0
         ">
 
-          {/* LOGO */}
+          {/* BARIS ATAS: LOGO DI KIRI, TOMBOL AUTH DI POJOK KANAN */}
           <div className="
             flex
             items-center
-            gap-2
-            sm:gap-3
+            justify-between
+            w-full
+            sm:w-auto
           ">
 
+            {/* LOGO (POJOK KIRI) */}
             <div className="
-              bg-blue-600
-              text-white
-              p-1.5
-              sm:p-2
-              rounded-xl
+              flex
+              items-center
+              gap-2
             ">
 
-              <HeartPulse size={20} className="sm:w-6 sm:h-6" />
+              <div className="
+                bg-blue-600
+                text-white
+                p-1.5
+                rounded-xl
+              ">
+
+                <HeartPulse size={20} />
+
+              </div>
+
+              <h1 className="
+                text-lg
+                sm:text-2xl
+                font-bold
+                text-gray-800
+                whitespace-nowrap
+              ">
+
+                Health Monitoring
+
+              </h1>
 
             </div>
 
-            <h1 className="
-              text-lg
-              sm:text-2xl
-              font-bold
-              text-gray-800
-              whitespace-nowrap
+            {/* TOMBOL AUTH (POJOK KANAN ATAS DI MOBILE & DESKTOP) */}
+            <div className="
+              flex
+              items-center
+              gap-2
             ">
 
-              Health Monitoring
+              <Link
+                to="/login"
+                className="
+                  border
+                  border-blue-600
+                  text-blue-600
+                  hover:bg-blue-50
+                  px-3
+                  sm:px-6
+                  py-1.5
+                  sm:py-2.5
+                  rounded-lg
+                  sm:rounded-xl
+                  transition
+                  font-medium
+                  text-xs
+                  sm:text-base
+                  whitespace-nowrap
+                "
+              >
 
-            </h1>
+                Login
+
+              </Link>
+
+              <Link
+                to="/register"
+                className="
+                  bg-blue-600
+                  hover:bg-blue-700
+                  text-white
+                  px-3
+                  sm:px-6
+                  py-1.5
+                  sm:py-2.5
+                  rounded-lg
+                  sm:rounded-xl
+                  transition
+                  shadow-lg
+                  font-medium
+                  text-xs
+                  sm:text-base
+                  whitespace-nowrap
+                "
+              >
+
+                Sign Up
+
+              </Link>
+
+            </div>
 
           </div>
 
-          {/* MENU (TETAP MUNCUL DI MOBILE & DESKTOP - BERJEJER DI TENAH) */}
+          {/* MENU TEKS (DI MOBILE DI BAWAH LOGO, DI DESKTOP SEJAJAR TENGAH KANAN) */}
           <div className="
             flex
             items-center
-            gap-3
-            xs:gap-4
+            justify-center
+            sm:justify-start
+            gap-4
             sm:gap-8
             text-gray-600
             font-medium
             text-xs
             sm:text-base
             overflow-x-auto
-            max-w-full
-            whitespace-nowrap
             scrollbar-none
+            whitespace-nowrap
+            py-1
+            sm:py-0
+            w-full
+            sm:w-auto
+            border-t
+            border-gray-100
+            sm:border-none
+            mt-1
+            sm:mt-0
           ">
 
             <a
@@ -140,66 +247,6 @@ export default function GuestPage() {
 
           </div>
 
-          {/* AUTH BUTTON (BERJEJER LANGSUNG DI NAVBARR SEBELAH MENU) */}
-          <div className="
-            flex
-            items-center
-            gap-2
-            sm:gap-4
-          ">
-
-            <Link
-              to="/login"
-              className="
-                border
-                border-blue-600
-                text-blue-600
-                hover:bg-blue-50
-                px-3
-                sm:px-6
-                py-1.5
-                sm:py-3
-                rounded-lg
-                sm:rounded-xl
-                transition
-                font-medium
-                text-xs
-                sm:text-base
-                whitespace-nowrap
-              "
-            >
-
-              Login
-
-            </Link>
-
-            <Link
-              to="/register"
-              className="
-                bg-blue-600
-                hover:bg-blue-700
-                text-white
-                px-3
-                sm:px-6
-                py-1.5
-                sm:py-3
-                rounded-lg
-                sm:rounded-xl
-                transition
-                shadow-lg
-                font-medium
-                text-xs
-                sm:text-base
-                whitespace-nowrap
-              "
-            >
-
-              Sign Up
-
-            </Link>
-
-          </div>
-
         </div>
 
       </nav>
@@ -208,7 +255,7 @@ export default function GuestPage() {
       <section
         id="home"
         className="
-          pt-44
+          pt-48
           sm:pt-40
           pb-16
           md:pb-28
