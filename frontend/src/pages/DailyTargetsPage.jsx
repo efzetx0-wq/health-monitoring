@@ -21,18 +21,18 @@ export default function DailyTargetsPage() {
     useState("");
 
   const [formData, setFormData] =
-  useState({
+    useState({
 
-    step_target: "",
+      step_target: "",
 
-    calorie_target: "",
+      calorie_target: "",
 
-    sleep_target: "",
+      sleep_target: "",
 
-    water_target: "",
+      water_target: "",
 
-    target_date: ""
-});
+      target_date: ""
+    });
 
   useEffect(() => {
 
@@ -78,19 +78,18 @@ export default function DailyTargetsPage() {
         "Daily target berhasil disimpan"
       );
 
+      // PERBAIKAN BUG: Mengembalikan kunci objek state reset yang benar sesuai inisialisasi awal
       setFormData({
 
-        target_steps: "",
+        step_target: "",
 
-        target_calories: "",
+        calorie_target: "",
 
-        target_sleep_hours: "",
+        sleep_target: "",
 
-        current_steps: "",
+        water_target: "",
 
-        current_calories: "",
-
-        current_sleep_hours: ""
+        target_date: ""
       });
 
       loadTargets();
@@ -103,23 +102,23 @@ export default function DailyTargetsPage() {
 
   const handleDelete = async (id) => {
 
-  try {
+    try {
 
-    console.log(id);
+      console.log(id);
 
-    await deleteDailyTarget(id);
+      await deleteDailyTarget(id);
 
-    loadTargets();
+      loadTargets();
 
-  } catch (error) {
+    } catch (error) {
 
-    console.log(error);
+      console.log(error);
 
-    console.log(
-      error.response?.data
-    );
-  }
-};
+      console.log(
+        error.response?.data
+      );
+    }
+  };
 
   const calculateProgress = (
     current,
@@ -129,8 +128,7 @@ export default function DailyTargetsPage() {
     if (!target) return 0;
 
     return Math.min(
-      ((current / target) * 100)
-      .toFixed(0),
+      Number(((current / target) * 100).toFixed(0)),
       100
     );
   };
@@ -139,26 +137,23 @@ export default function DailyTargetsPage() {
 
     <MainLayout>
 
-      <div className="p-6">
+      {/* MODIFIKASI: Padding bersahabat di mobile p-4 dan diberi ruang pb-24 agar tidak menabrak bar navigasi bawah */}
+      <div className="p-4 sm:p-6 pb-24 md:pb-6">
 
-        <h1 className="text-3xl font-bold mb-6">
-
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">
           Daily Targets
-
         </h1>
 
         {/* Form */}
-        <div className="bg-white p-6 rounded-2xl shadow mb-8">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl shadow mb-8 border border-gray-50">
 
-          <h2 className="text-2xl font-bold mb-4">
-
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
             Set Daily Target
-
           </h2>
 
           {message && (
 
-            <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-4">
+            <div className="bg-green-100 text-green-700 p-3 rounded-xl mb-4 text-sm font-medium">
 
               {message}
 
@@ -167,215 +162,188 @@ export default function DailyTargetsPage() {
 
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
 
             {/* Target Steps */}
-            <input
-              type="number"
-              name="step_target"
-              placeholder="Step Target"
-              value={formData.step_target}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Step Target</label>
+              <input
+                type="number"
+                name="step_target"
+                placeholder="e.g. 10000"
+                value={formData.step_target}
+                onChange={handleChange}
+                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
             {/* Target Calories */}
-            <input
-              type="number"
-              name="calorie_target"
-              placeholder="Calorie Target"
-              value={formData.calorie_target}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Calorie Target (kcal)</label>
+              <input
+                type="number"
+                name="calorie_target"
+                placeholder="e.g. 2000"
+                value={formData.calorie_target}
+                onChange={handleChange}
+                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
             {/* Target Sleep */}
-            <input
-              type="number"
-              step="0.1"
-              name="sleep_target"
-              placeholder="Sleep Target"
-              value={formData.sleep_target}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Sleep Target (hours)</label>
+              <input
+                type="number"
+                step="0.1"
+                name="sleep_target"
+                placeholder="e.g. 8"
+                value={formData.sleep_target}
+                onChange={handleChange}
+                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
-            <input
-              type="number"
-              name="water_target"
-              placeholder="Water Target"
-              value={formData.water_target}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+            {/* Target Water */}
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Water Target (ml)</label>
+              <input
+                type="number"
+                name="water_target"
+                placeholder="e.g. 2000"
+                value={formData.water_target}
+                onChange={handleChange}
+                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
-            <input
-              type="date"
-              name="target_date"
-              value={formData.target_date}
-              onChange={handleChange}
-              className="border p-3 rounded-lg"
-            />
+            {/* Target Date */}
+            <div className="flex flex-col sm:col-span-2">
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Target Date</label>
+              <input
+                type="date"
+                name="target_date"
+                value={formData.target_date}
+                onChange={handleChange}
+                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
 
             <button
-              className="bg-blue-600 text-white p-3 rounded-lg md:col-span-2 hover:bg-blue-700"
+              className="bg-blue-600 text-white p-3 rounded-xl sm:col-span-2 hover:bg-blue-700 transition font-semibold text-sm sm:text-base shadow-md shadow-blue-100"
             >
-
               Save Daily Target
-
             </button>
 
           </form>
 
         </div>
 
+        {/* History Container Title */}
+        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">Active Targets & Progress</h2>
+
         {/* Progress Cards */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
 
-          {targets.map((target) => {
+          {targets.length === 0 ? (
+            <p className="text-gray-400 text-center text-sm bg-white py-8 rounded-2xl shadow border border-gray-100">
+              Belum ada target harian yang diatur.
+            </p>
+          ) : (
+            targets.map((target) => {
 
-            const stepProgress =
-              calculateProgress(
-                target.step_target,
-                target.step_target
-              );
+              // Catatan logis: Di masa depan ganti value pertama dengan pencapaian aktual (current value) dari user
+              const stepProgress = calculateProgress(target.step_target, target.step_target);
+              const calorieProgress = calculateProgress(target.calorie_target, target.calorie_target);
+              const sleepProgress = calculateProgress(target.sleep_target, target.sleep_target);
 
-            const calorieProgress =
-              calculateProgress(
-                target.calorie_target,
-                target.calorie_target
-              );
+              return (
 
-            const sleepProgress =
-              calculateProgress(
-                target.sleep_target,
-                target.sleep_target
-              );
-
-            return (
-
-              <div
-                key={target.id}
-                className="bg-white p-6 rounded-2xl shadow"
-              >
-
-                {/* Steps */}
-                <div className="mb-6">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-
-                      Steps
-
-                    </span>
-
-                    <span>
-
-                      {stepProgress}%
-
-                    </span>
-
-                  </div>
-
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-
-                    <div
-                      className="bg-blue-500 h-4 rounded-full"
-                      style={{
-                        width:
-                        `${stepProgress}%`
-                      }}
-                    />
-
-                  </div>
-
-                </div>
-
-                {/* Calories */}
-                <div className="mb-6">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-
-                      Calories
-
-                    </span>
-
-                    <span>
-
-                      {calorieProgress}%
-
-                    </span>
-
-                  </div>
-
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-
-                    <div
-                      className="bg-green-500 h-4 rounded-full"
-                      style={{
-                        width:
-                        `${calorieProgress}%`
-                      }}
-                    />
-
-                  </div>
-
-                </div>
-
-                {/* Sleep */}
-                <div className="mb-6">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-
-                      Sleep
-
-                    </span>
-
-                    <span>
-
-                      {sleepProgress}%
-
-                    </span>
-
-                  </div>
-
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-
-                    <div
-                      className="bg-purple-500 h-4 rounded-full"
-                      style={{
-                        width:
-                        `${sleepProgress}%`
-                      }}
-                    />
-
-                  </div>
-
-                </div>
-
-                {/* Delete */}
-                <button
-                  onClick={() =>
-                    handleDelete(
-                      target.id
-                    )
-                  }
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                <div
+                  key={target.id}
+                  className="bg-white p-5 sm:p-6 rounded-2xl shadow border border-gray-100 flex flex-col justify-between gap-4"
                 >
+                  
+                  {/* Bagian Atas Kartu: Tanggal Target & Tombol Delete */}
+                  <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                    <div>
+                      <span className="text-[10px] text-gray-400 font-bold block">TARGET DATE</span>
+                      <span className="text-sm font-bold text-gray-700">{target.target_date || "Hari Ini"}</span>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(target.id)}
+                      className="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
 
-                  Delete
+                  {/* Bagian Tengah Kartu: Bar Indikator Progres */}
+                  <div className="space-y-4">
+                    {/* Steps */}
+                    <div>
+                      <div className="flex justify-between mb-1.5 text-xs sm:text-sm">
+                        <span className="font-semibold text-gray-700">Steps Goal</span>
+                        <span className="font-bold text-blue-600">{target.step_target?.toLocaleString()} steps ({stepProgress}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+                          style={{ width: `${stepProgress}%` }}
+                        />
+                      </div>
+                    </div>
 
-                </button>
+                    {/* Calories */}
+                    <div>
+                      <div className="flex justify-between mb-1.5 text-xs sm:text-sm">
+                        <span className="font-semibold text-gray-700">Calories Burn Goal</span>
+                        <span className="font-bold text-emerald-600">{target.calorie_target?.toLocaleString()} kcal ({calorieProgress}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-emerald-500 h-3 rounded-full transition-all duration-500"
+                          style={{ width: `${calorieProgress}%` }}
+                        />
+                      </div>
+                    </div>
 
-              </div>
-            )
-          })}
+                    {/* Sleep */}
+                    <div>
+                      <div className="flex justify-between mb-1.5 text-xs sm:text-sm">
+                        <span className="font-semibold text-gray-700">Sleep Duration Goal</span>
+                        <span className="font-bold text-purple-600">{target.sleep_target} Hours ({sleepProgress}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-purple-500 h-3 rounded-full transition-all duration-500"
+                          style={{ width: `${sleepProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Water Goal */}
+                    {target.water_target && (
+                      <div>
+                        <div className="flex justify-between mb-1.5 text-xs sm:text-sm">
+                          <span className="font-semibold text-gray-700">Water Intake Goal</span>
+                          <span className="font-bold text-sky-500">{target.water_target} ml</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-3">
+                          <div
+                            className="bg-sky-400 h-3 rounded-full"
+                            style={{ width: `100%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )
+            })
+          )}
 
         </div>
 
