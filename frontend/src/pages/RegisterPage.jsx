@@ -59,10 +59,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
 
       {/* CARD */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-6 sm:p-8">
 
         {/* TITLE */}
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">
@@ -137,11 +137,15 @@ export default function RegisterPage() {
               Verify OTP
             </h2>
 
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 mb-6 text-sm sm:text-base">
               Enter OTP sent to your email
             </p>
 
-            <div className="flex justify-center gap-2 mb-6">
+            {/* PERUBAHAN UTAMA: 
+                Menggunakan `grid grid-cols-6` dan `w-full` agar kotak OTP otomatis 
+                menyusut dengan pas mengikuti lebar HP sekecil apa pun.
+            */}
+            <div className="grid grid-cols-6 gap-2 max-w-sm mx-auto mb-6">
               {otp.map((v, i) => (
                 <input
                   key={i}
@@ -150,7 +154,7 @@ export default function RegisterPage() {
                   maxLength="1"
                   value={v}
                   onChange={(e) => handleOtpChange(e.target.value, i)}
-                  className="w-12 h-12 text-center border rounded-lg text-xl focus:ring-2 focus:ring-gray-400"
+                  className="w-full aspect-square text-center border rounded-xl text-lg sm:text-xl font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400 p-0"
                 />
               ))}
             </div>
