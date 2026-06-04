@@ -4,32 +4,28 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-// IMPORT: Panggil facade Auth untuk mendapatkan ID user yang sedang login
 use Illuminate\Support\Facades\Auth;
-// IMPORT SELESAI: Memanggil Model PhysicalActivity milik Anda
 use App\Models\PhysicalActivity;
+// IMPORT SELESAI: Panggil Cache untuk menggantikan Session yang sering hilang di lintas domain
+use Illuminate\Support\Facades\Cache; 
 
 class GoogleFitController extends Controller
 {
-        public function auth()
+    public function auth()
     {
         $client = new \Google\Client();
 
         $client->setClientId(env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         
-        // PAKSA REDIRECT URI MENGGUNAKAN LOCALHOST AGAR COCOK DENGAN SETELAN GOOGLE
-        $client->setRedirectUri('http://localhost:8000/api/google-fit/callback');
+        // DINAMIS: Menggunakan APP_URL dari Railway (Otomatis berubah jadi https://health-monitoring... di server)
+        $client->setRedirectUri(env('APP_URL') . '/api/google-fit/callback');
 
-        // LANGKAH KRUSIAL: Paksa kosongkan semua scope bawaan agar link salah "https://googleapis.com" terbuang total
         $client->setScopes([]); 
-
-        // Masukkan scope resmi Google Fit yang utuh ke dalam fungsi addScope
-        $client->addScope("https://googleapis.com");
+        $client->addScope("https://www.googleapis.com/auth/fitness.activity.read"); // Scope resmi membaca langkah kaki
 
         return redirect($client->createAuthUrl());
     }
-
 
     public function callback(Request $request)
     {
@@ -38,38 +34,43 @@ class GoogleFitController extends Controller
         $client->setClientId(env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         
-        // PAKSA REDIRECT URI MENGGUNAKAN LOCALHOST AGAR COCOK DENGAN SETELAN GOOGLE
-        $client->setRedirectUri('http://localhost:8000/api/google-fit/callback');
+        // DINAMIS: Samakan dengan fungsi auth
+        $client->setRedirectUri(env('APP_URL') . '/api/google-fit/callback');
 
         $token = $client->fetchAccessTokenWithAuthCode($request->code);
 
-        session(['google_token' => $token]);
+        // AMAN: Simpan token menggunakan Cache berbasis database Railway selama 1 jam, gunakan ID user sebagai pembeda
+        if (Auth::check()) {
+            Cache::put('google_token_' . Auth::id(), $token, 3600);
+        } else {
+            // Backup jika diakses sebelum login web selesai
+            Cache::put('google_token_guest', $token, 3600);
+        }
 
-        return response()->json([
-            'message' => 'Google Fit connected'
-        ]);
+        // REDIRECT BALIK KE FRONTEND VERCEL SETELAH SELESAI KONEKSI GOOGLE
+        return redirect(env('CORS_ALLOWED_ORIGINS') . '/dashboard?status=google-connected');
     }
 
     public function sync()
     {
-        $token = session('google_token');
+        // Ambil token dari Cache, bukan dari Session
+        $userId = Auth::id() ?? 'guest';
+        $token = Cache::get('google_token_' . $userId);
 
         if (!$token) {
             return response()->json([
-                'message' => 'Google Fit belum terkoneksi'
+                'message' => 'Google Fit belum terkoneksi atau token kedaluwarsa'
             ], 401);
         }
 
         $client = new \Google\Client();
         $client->setAccessToken($token);
 
-        // Memanggil objek Fitness secara absolut untuk menghilangkan garis merah
         $fitness = new \Google\Service\Fitness($client);
 
         $endTime = now()->timestamp * 1000;
         $startTime = now()->startOfDay()->timestamp * 1000;
 
-        // Memanggil objek AggregateRequest secara absolut untuk menghilangkan garis merah
         $body = new \Google\Service\Fitness\AggregateRequest([
             'aggregateBy' => [
                 [
@@ -99,12 +100,11 @@ class GoogleFitController extends Controller
 
         $calories = round($steps * 0.04, 2);
 
-        // TAMBAHAN OTOMATISASI: Menyimpan data otomatis ke tabel PhysicalActivity Anda
         if (Auth::check()) {
             PhysicalActivity::updateOrCreate(
                 [
                     'user_id' => Auth::id(),
-                    'date'    => now()->toDateString(), // Format database: YYYY-MM-DD
+                    'date'    => now()->toDateString(),
                 ],
                 [
                     'steps'    => $steps,
