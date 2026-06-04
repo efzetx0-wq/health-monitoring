@@ -16,7 +16,7 @@ import {
   FaBullseye,
   FaBell,
   FaSignOutAlt,
-  FaBars // Tambah icon burger bawaan react-icons jika diperlukan
+  FaBars 
 } from "react-icons/fa";
 
 import {
@@ -27,7 +27,7 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // State untuk kontrol buka-tutup sidebar di layar HP/Mobile
+  // State khusus mengendalikan laci menu saat dibuka di HP
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
@@ -91,47 +91,41 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* =============================================================== */}
-      {/* TOMBOL BURGER MENU (Hanya muncul di HP, diletakkan di Bar Atas) */}
-      {/* =============================================================== */}
+      {/* HEADER ATAS HP: Agar tombol burger sejajar dan tidak menimpa teks fitur */}
       <div className="md:hidden w-full bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg">
-            <HeartPulse size={18} color="white" />
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 p-2 rounded-xl">
+            <HeartPulse size={20} color="white" />
           </div>
-          <span className="font-bold text-gray-800 text-base">Health App</span>
+          <span className="font-bold text-gray-800">Health App</span>
         </div>
         
-        {/* Tombol Burger Utama: Menggunakan flex agar icon sejajar dan tidak menimpa judul */}
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 text-gray-700 hover:text-blue-600 focus:outline-none flex items-center justify-center"
-          aria-label="Open Menu"
+          className="p-2 text-gray-700 focus:outline-none"
         >
           <FaBars size={22} />
         </button>
       </div>
 
-      {/* BERGUNA SEBAGAI BACKDROP TRANSFILM DI HP (Tutup otomatis jika area gelap diklik) */}
+      {/* BACKDROP GELAP DI HP */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
         />
       )}
 
-      {/* =============================================================== */}
-      {/* STRUKTUR SIDEBAR UTAMA                                          */}
-      {/* =============================================================== */}
+      {/* CONTAINER SIDEBAR UTAMA */}
       <div
         className={`
           fixed md:sticky top-0 left-0 z-50
-          w-280px
+          w-[70vw] sm:w-[60vw] md:w-280px
           h-screen
           overflow-y-auto
           bg-white
           text-gray-800
-          shadow-xl
+          shadow-xl md:shadow-none
           p-6
           border-r
           border-gray-200
@@ -141,7 +135,8 @@ export default function Sidebar() {
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* HEADER SIDEBAR & TOMBOL "X" PENUTUP */}
+
+        {/* LOGO & TOMBOL CLOSE X POLOS */}
         <div className="flex items-center justify-between gap-4 mb-10">
           <div className="flex items-center gap-4">
             <div className="bg-blue-600 p-3 rounded-2xl shadow-lg">
@@ -157,11 +152,10 @@ export default function Sidebar() {
             </div>
           </div>
 
-          {/* REQUESTED: Tombol X biasa, warna hitam tanpa background/merah */}
+          {/* FIX: Tombol X hitam murni, polos, tanpa warna background, dan tanpa efek hover */}
           <button
             onClick={() => setIsOpen(false)}
-            className="md:hidden text-gray-900 hover:text-gray-600 text-2xl font-light focus:outline-none p-1 transition-colors"
-            aria-label="Close Menu"
+            className="md:hidden text-gray-900 text-2xl font-light focus:outline-none"
           >
             ✕
           </button>
@@ -174,7 +168,7 @@ export default function Sidebar() {
               <button
                 key={index}
                 onClick={() => {
-                  setIsOpen(false); // Tutup sidebar mobile sebelum logout
+                  setIsOpen(false);
                   handleLogout();
                 }}
                 className="
@@ -200,7 +194,7 @@ export default function Sidebar() {
               <Link
                 key={index}
                 to={menu.path}
-                onClick={() => setIsOpen(false)} // Otomatis tutup menu di mobile jika salah satu fitur diklik
+                onClick={() => setIsOpen(false)}
                 className={`
                   group
                   flex
