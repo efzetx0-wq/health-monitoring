@@ -1,4 +1,5 @@
 import Sidebar from "../components/Sidebar";
+import MobileNav from "../components/MobileNav";
 import ReminderChecker from "../components/ReminderChecker";
 
 import { useEffect, useState } from "react";
@@ -85,7 +86,7 @@ export default function MainLayout({
           fixed
           top-4
           left-4
-          z-50
+          z-60
           bg-blue-600
           text-white
           p-3
@@ -116,18 +117,15 @@ export default function MainLayout({
 
       )}
 
-      {/* SIDEBAR MOBILE */}
+      {/* MOBILE SIDEBAR */}
       <div
         className={`
           md:hidden
           fixed
           top-0
           left-0
-
-          w-[60vw]
-
+          h-full
           z-50
-
           transition-transform
           duration-300
 
@@ -137,7 +135,7 @@ export default function MainLayout({
               : "-translate-x-full"
           }
         `}
-        >     
+      >
 
         <div className="relative">
 
@@ -150,7 +148,7 @@ export default function MainLayout({
               absolute
               top-4
               right-4
-              z-50
+              z-60
               bg-red-500
               text-white
               p-2
@@ -181,12 +179,21 @@ export default function MainLayout({
         <div
           className="
             flex-1
+            pb-20
+            md:pb-0
           "
         >
 
           {children}
 
         </div>
+
+      </div>
+
+      {/* MOBILE NAVIGATION */}
+      <div className="md:hidden">
+
+        <MobileNav />
 
       </div>
 
