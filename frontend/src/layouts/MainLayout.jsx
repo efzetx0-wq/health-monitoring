@@ -1,5 +1,4 @@
 import Sidebar from "../components/Sidebar";
-import MobileNav from "../components/MobileNav";
 import ReminderChecker from "../components/ReminderChecker";
 
 import { useEffect, useState } from "react";
@@ -66,17 +65,14 @@ export default function MainLayout({
         bg-gray-100
         dark:bg-gray-900
         dark:text-white
-        transition-colors
-        duration-300
       "
     >
 
-      {/* REMINDER GLOBAL */}
       <ReminderChecker
         reminders={reminders}
       />
 
-      {/* HAMBURGER MOBILE */}
+      {/* HAMBURGER */}
       <button
         onClick={() =>
           setMobileSidebarOpen(true)
@@ -86,11 +82,16 @@ export default function MainLayout({
           fixed
           top-4
           left-4
-          z-60
+
+          z-50
+
           bg-blue-600
           text-white
+
           p-3
+
           rounded-xl
+
           shadow-lg
         "
       >
@@ -103,16 +104,18 @@ export default function MainLayout({
       {mobileSidebarOpen && (
 
         <div
+          onClick={() =>
+            setMobileSidebarOpen(false)
+          }
           className="
             md:hidden
             fixed
             inset-0
+
             bg-black/50
+
             z-40
           "
-          onClick={() =>
-            setMobileSidebarOpen(false)
-          }
         />
 
       )}
@@ -121,11 +124,13 @@ export default function MainLayout({
       <div
         className={`
           md:hidden
+
           fixed
           top-0
           left-0
-          h-full
+
           z-50
+
           transition-transform
           duration-300
 
@@ -137,21 +142,37 @@ export default function MainLayout({
         `}
       >
 
-        <div className="relative">
+        
+          <div
+          className="
+            relative
 
-          {/* CLOSE BUTTON */}
+            w-[60vw]
+
+            min-w-64
+
+            max-w-sm
+          "
+        >
+
+          {/* CLOSE */}
           <button
             onClick={() =>
               setMobileSidebarOpen(false)
             }
             className="
               absolute
+
               top-4
               right-4
-              z-60
+
+              z-50
+
               bg-red-500
               text-white
+
               p-2
+
               rounded-lg
             "
           >
@@ -168,7 +189,7 @@ export default function MainLayout({
 
       <div className="flex">
 
-        {/* SIDEBAR DESKTOP */}
+        {/* DESKTOP SIDEBAR */}
         <div className="hidden md:block">
 
           <Sidebar />
@@ -176,24 +197,16 @@ export default function MainLayout({
         </div>
 
         {/* CONTENT */}
-        <div
+        <main
           className="
             flex-1
-            pb-20
-            md:pb-0
+            min-h-screen
           "
         >
 
           {children}
 
-        </div>
-
-      </div>
-
-      {/* MOBILE NAVIGATION */}
-      <div className="md:hidden">
-
-        <MobileNav />
+        </main>
 
       </div>
 
