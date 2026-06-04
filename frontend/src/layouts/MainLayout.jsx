@@ -123,17 +123,21 @@ export default function MainLayout({
           fixed
           top-0
           left-0
-          h-full
+
+          w-[60vw]
+
           z-50
+
           transition-transform
           duration-300
+
           ${
             mobileSidebarOpen
               ? "translate-x-0"
               : "-translate-x-full"
           }
         `}
-      >
+        >     
 
         <div className="relative">
 
