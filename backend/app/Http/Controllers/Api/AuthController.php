@@ -21,6 +21,7 @@ use Carbon\Carbon;
 class AuthController extends Controller
 {
     // REGISTER (WITH OTP)
+    // REGISTER (WITH OTP) - SUDAH DIPERBAIKI DENGAN TRANSAKSI & LOG
     public function register(Request $request)
     {
         $validator = Validator::make(
@@ -41,30 +42,45 @@ class AuthController extends Controller
         // GENERATE OTP
         $otp = rand(100000, 999999);
 
-        // CREATE USER
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
+        try {
+            // Bungkus proses penyimpanan agar bisa dibatalkan jika email diblokir server
+            $user = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $otp) {
+                return User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
 
-            // IMPORTANT DEFAULT ROLE
-            'role' => 'user',
+                    // IMPORTANT DEFAULT ROLE
+                    'role' => 'user',
 
-            // OTP FIELDS
-            'otp' => $otp,
-            'otp_expired_at' => Carbon::now()->addMinutes(5),
-            'is_verified' => false
-        ]);
+                    // OTP FIELDS
+                    'otp' => $otp,
+                    'otp_expired_at' => Carbon::now()->addMinutes(5),
+                    'is_verified' => false
+                ]);
+            });
 
-        // SEND EMAIL OTP
-        Mail::to($user->email)->send(
-            new SendOtpMail($otp)
-        );
+            // SEND EMAIL OTP
+            Mail::to($user->email)->send(
+                new SendOtpMail($otp)
+            );
 
-        return response()->json([
-            'message' => 'OTP telah dikirim ke email kamu',
-            'email' => $user->email
-        ]);
+            return response()->json([
+                'message' => 'OTP telah dikirim ke email kamu',
+                'email' => $user->email
+            ], 200);
+
+        } catch (\Exception $e) {
+            // JIKA EMAIL TIMEOUT/GAGAL, DATA USER DI DATABASE OTOMATIS DIHAPUS KEMBALI
+            
+            // Tulis alasan eror aslinya ke dalam Deploy Logs Railway
+            \Log::error('SMTP GOOGLE MENGALAMI EROR KARENA: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Gagal mengirim kode OTP karena masalah jaringan server. Akun batal dibuat.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // VERIFY OTP (NEW)
