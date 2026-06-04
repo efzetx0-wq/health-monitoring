@@ -81,13 +81,12 @@ export default function GuestPage() {
           sm:gap-0
         ">
 
-          {/* BARIS ATAS: LOGO DI KIRI, TOMBOL AUTH DI POJOK KANAN */}
+          {/* BARIS UTAMA: LOGO, MENU, DAN TOMBOL AUTH SEJAJAR DI DESKTOP */}
           <div className="
             flex
             items-center
             justify-between
             w-full
-            sm:w-auto
           ">
 
             {/* LOGO (POJOK KIRI) */}
@@ -122,7 +121,62 @@ export default function GuestPage() {
 
             </div>
 
-            {/* TOMBOL AUTH (POJOK KANAN ATAS DI MOBILE & DESKTOP) */}
+            {/* MENU TEKS (TENGAH DI DESKTOP, BAWAH DI MOBILE) */}
+            {/* FIX: Ditambahkan `sm:flex sm:static absolute` agar rapi posisinya di desktop */}
+            <div className="
+              hidden
+              sm:flex
+              items-center
+              gap-4
+              sm:gap-8
+              text-gray-600
+              font-medium
+              text-xs
+              sm:text-base
+              whitespace-nowrap
+              sm:ml-12
+              sm:mr-auto
+            ">
+
+              <a
+                href="#home"
+                className="hover:text-blue-600 transition"
+              >
+
+                Home
+
+              </a>
+
+              <a
+                href="#features"
+                className="hover:text-blue-600 transition"
+              >
+
+                Features
+
+              </a>
+
+              <a
+                href="#statistics"
+                className="hover:text-blue-600 transition"
+              >
+
+                Statistics
+
+              </a>
+
+              <a
+                href="#footer"
+                className="hover:text-blue-600 transition"
+              >
+
+                Contact
+
+              </a>
+
+            </div>
+
+            {/* TOMBOL AUTH (KINI DIJAMIN ADA DI POJOK KANAN ATAS DESKTOP) */}
             <div className="
               flex
               items-center
@@ -183,30 +237,24 @@ export default function GuestPage() {
 
           </div>
 
-          {/* MENU TEKS (DI MOBILE DI BAWAH LOGO, DI DESKTOP SEJAJAR TENGAH KANAN) */}
+          {/* MENU TEKS CADANGAN KHUSUS UNTUK VERSI MOBILE (Hanya tampil di HP di bawah logo) */}
           <div className="
             flex
+            sm:hidden
             items-center
             justify-center
-            sm:justify-start
             gap-4
-            sm:gap-8
             text-gray-600
             font-medium
             text-xs
-            sm:text-base
             overflow-x-auto
             scrollbar-none
             whitespace-nowrap
             py-1
-            sm:py-0
             w-full
-            sm:w-auto
             border-t
             border-gray-100
-            sm:border-none
             mt-1
-            sm:mt-0
           ">
 
             <a
