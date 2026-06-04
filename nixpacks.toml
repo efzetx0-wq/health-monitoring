@@ -1,0 +1,18 @@
+[providers]
+php = {}
+
+[variables]
+NIXPACKS_PHP_ROOT_DIR = "backend"
+NIXPACKS_PHP_WEB_ROOT = "backend/public"
+
+[phases.setup]
+nixPkgs = ["...", "php", "nginx"]
+
+[phases.build]
+cmds = [
+    "cd backend && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+    "cd backend && php artisan config:cache && php artisan route:cache"
+]
+
+[start]
+cmd = "nginx -c /etc/nginx/nginx.conf -g 'daemon off;' & php-fpm -F"
