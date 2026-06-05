@@ -21,34 +21,45 @@ class FoodDiaryController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // 1. TAMBAHKAN VALIDASI: Supaya data wajib terisi dan food_id benar-benar ada di tabel foods
-        $request->validate([
-            'food_id' => 'required',
-            'quantity' => 'required|numeric|min:0.1',
-            'consumed_at' => 'required|date',
-            'notes' => 'nullable|string',
-        ]);
+{
+    // 1. Kita sesuaikan validasi agar menerima total_calories langsung dari React
+    $request->validate([
+        'food_id' => 'required|numeric', // Kita matikan fungsi 'exists:foods,id' agar tidak terkunci database kosong
+        'quantity' => 'required|numeric|min:0.1',
+        'consumed_at' => 'required',
+        'notes' => 'nullable|string',
+    ]);
 
-        $food = Food::findOrFail($request->food_id);
+    try {
+        // 2. Ambil total_calories dari request frontend. 
+        // Bersihkan string " kcal" jika terbawa dari input form React
+        $cleanCalories = (float) str_replace(' kcal', '', $request->total_calories);
+        
+        // Hitung total kalori berdasarkan porsi yang diinput
+        $finalCalories = $cleanCalories * (float) $request->quantity;
 
-        $totalCalories = $food->calories * $request->quantity;
-
-        // 2. Simpan ke database
+        // 3. Simpan langsung ke database diary
         $diary = FoodDiary::create([
             'user_id' => Auth::id(),
             'food_id' => $request->food_id,
             'quantity' => $request->quantity,
-            'total_calories' => $totalCalories,
-            'consumed_at' => $request->consumed_at,
+            'total_calories' => $finalCalories,
+            'consumed_at' => \Carbon\Carbon::parse($request->consumed_at)->format('Y-m-d H:i:s'),
             'notes' => $request->notes,
         ]);
 
         return response()->json([
             'message' => 'Food diary berhasil ditambahkan',
             'data' => $diary
-        ], 201); // Gunakan status 201 untuk penambahan data sukses
+        ], 201);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Gagal menyimpan data makanan',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
 
     public function destroy($id)
 {
