@@ -23,7 +23,6 @@ import {
 } from "recharts";
 
 export default function DashboardPage() {
-  const [progress, setProgress] = useState(null);
   const [profile, setProfile] = useState(null);
   const [activities, setActivities] = useState([]);
   const [sleepData, setSleepData] = useState([]);
@@ -35,46 +34,50 @@ export default function DashboardPage() {
 
   const loadDashboard = async () => {
     try {
-      const progressData = await getDailyProgress();
+      // Mengambil data riwayat asli dari fitur yang sudah Anda simpan
       const profileData = await getHealthProfile();
       const activityData = await getActivities();
       const sleep = await getSleepData();
       const reminderData = await getReminders();
 
-      setProgress(progressData);
       setProfile(profileData);
-      setActivities(activityData);
-      setSleepData(sleep);
-      setReminders(reminderData);
+      setActivities(Array.isArray(activityData) ? activityData : []);
+      setSleepData(Array.isArray(sleep) ? sleep : []);
+      setReminders(Array.isArray(reminderData) ? reminderData : []);
     } catch (error) {
-      console.log(error);
+      console.log("Error loading dashboard data:", error);
     }
   };
 
   // ==========================================
-  // KALKULASI DATA UNTUK STATS CARDS
+  // LOGIKA AMBIL DATA HARI INI SECARA DINAMIS
   // ==========================================
-  const totalStepsToday = activities.length > 0 
-    ? Number(activities[0].steps || 0) 
-    : 0;
+  
+  // dapatkan tanggal hari ini dengan format YYYY-MM-DD (sesuai database Anda)
+  const todayString = new Date().toISOString().split("T")[0];
 
-  const caloriesBurnedToday = activities.length > 0
-    ? Number(activities[0].calories_burned || 0)
-    : 0;
+  // Cari apakah ada data aktivitas untuk hari ini
+  const activityToday = activities.find(
+    (item) => item.activity_date && item.activity_date.includes(todayString)
+  ) || activities[0]; // Jika tidak ada data hari ini, tampilkan data entri terbaru sebagai cadangan
 
-  const averageSleep = sleepData.length > 0
+  const stepsToday = activityToday ? Number(activityToday.steps || 0) : 0;
+  const caloriesToday = activityToday ? Number(activityToday.calories_burned || 0) : 0;
+
+  // Perhitungan Rata-Rata Tidur (Avrg Sleep) dari seluruh history database Anda
+  const avrgSleep = sleepData.length > 0
     ? (
         sleepData.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / 
         sleepData.length
       ).toFixed(1)
-    : 0;
+    : "0.0";
 
   // ==========================================
   // LOGIKA AI HEALTH INSIGHTS
   // ==========================================
   const healthInsights = [];
 
-  if (totalStepsToday < 5000) {
+  if (stepsToday < 5000) {
     healthInsights.push({
       type: "warning",
       message: "Your physical activity is low. Try walking more today."
@@ -86,7 +89,7 @@ export default function DashboardPage() {
     });
   }
 
-  if (Number(averageSleep) < 7) {
+  if (Number(avrgSleep) < 7) {
     healthInsights.push({
       type: "warning",
       message: "Your sleep duration is below recommended levels."
@@ -114,7 +117,7 @@ export default function DashboardPage() {
 
   return (
     <MainLayout>
-      {/* Padding bawah pb-24 mengamankan tampilan agar tidak tertimpa navbar HP */}
+      {/* Container Responsif untuk Smartphone (pb-24 mencegah tertutup navbar bawah) */}
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
         
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -122,7 +125,7 @@ export default function DashboardPage() {
         </h1>
 
         {/* ========================================== */}
-        {/* 1. STATS CARDS                             */}
+        {/* 1. STATS CARDS (GRID FLEKSIBEL HP - PC)    */}
         {/* ========================================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           
@@ -132,7 +135,7 @@ export default function DashboardPage() {
               Steps Today
             </h2>
             <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {totalStepsToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">steps</span>
+              {stepsToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">steps</span>
             </p>
           </div>
 
@@ -142,17 +145,17 @@ export default function DashboardPage() {
               Calories Burned
             </h2>
             <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {caloriesBurnedToday} <span className="text-xs font-normal text-gray-400">kcal</span>
+              {caloriesToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">kcal</span>
             </p>
           </div>
 
-          {/* AVERAGE SLEEP CARD */}
+          {/* AVRG SLEEP CARD (PERUBAHAN DISINI) */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Average Sleep
+              Avrg Sleep
             </h2>
             <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {averageSleep} <span className="text-xs font-normal text-gray-400">hours</span>
+              {avrgSleep} <span className="text-xs font-normal text-gray-400">hours</span>
             </p>
           </div>
 
@@ -227,7 +230,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ========================================== */}
-        {/* 4. CHARTS TRENDS SECTION (SAFE FOR v4)     */}
+        {/* 4. CHARTS TRENDS SECTION (AMAN UNTUK v4)   */}
         {/* ========================================== */}
         <div className="space-y-8">
           
