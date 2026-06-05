@@ -24,7 +24,7 @@ class FoodDiaryController extends Controller
     {
         // 1. TAMBAHKAN VALIDASI: Supaya data wajib terisi dan food_id benar-benar ada di tabel foods
         $request->validate([
-            'food_id' => 'required|exists:foods,id',
+            'food_id' => 'required',
             'quantity' => 'required|numeric|min:0.1',
             'consumed_at' => 'required|date',
             'notes' => 'nullable|string',
