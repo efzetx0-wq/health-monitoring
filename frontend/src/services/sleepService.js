@@ -17,27 +17,28 @@ export const getSleepTrackings = async () => {
 };
 
 export const createSleepTracking = async (data) => {
-  // PERBAIKAN: Paksa sleep_duration menjadi ANGKA MURNI (bukan string dengan tanda kutip)
+  // Ambil token untuk keamanan
+  const token = localStorage.getItem("token");
+
+  // KITA AMANKAN DATA DI SINI SEBELUM MENYENTUH BACKEND
   const cleanedData = {
     ...data,
+    // 1. Paksa durasi menjadi angka murni
     sleep_duration: data.sleep_duration ? parseFloat(data.sleep_duration) : 0,
+    
+    // 2. PAKSA KUALITAS MENJADI HURUF KECIL MURNI (.toLowerCase())
+    // Ini akan mengubah "EXCELLENT" dari web menjadi "excellent" yang ramah database
+    sleep_quality: data.sleep_quality ? data.sleep_quality.toLowerCase() : "good",
   };
 
-  // Kirim data yang sudah bersih beserta token autentikasinya
   const response = await api.post(
     "/sleep-trackings",
     cleanedData,
-    getAuthConfig()
-  );
-
-  return response.data;
-};
-
-export const deleteSleepTracking = async (id) => {
-  // Menambahkan header token saat menghapus data harian
-  const response = await api.delete(
-    `/sleep-trackings/${id}`,
-    getAuthConfig()
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
 
   return response.data;
