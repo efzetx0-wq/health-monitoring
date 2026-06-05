@@ -144,47 +144,43 @@ export default function FoodDiaryPage() {
 
   // SAVE
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
+    // Validasi sederhana di frontend agar tidak kirim data kosong
+    if (!formData.food_id || !formData.quantity || !formData.consumed_at) {
+      alert("Mohon isi semua kolom yang wajib (Makanan, Jumlah, dan Waktu)!");
+      return;
+    }
+
     try {
+      // PERBAIKAN: Bersihkan data dan paksa quantity menjadi ANGKA MURNI sebelum dikirim
+      const payload = {
+        ...formData,
+        food_id: parseInt(formData.food_id), // Paksa menjadi Integer
+        quantity: parseFloat(formData.quantity), // Paksa menjadi Float/Decimal
+      };
 
-      await createFoodDiary(
-        formData
-      );
+      await createFoodDiary(payload);
 
-      setMessage(
-        "Food diary berhasil disimpan"
-      );
+      setMessage("Food diary berhasil disimpan");
 
       // RESET FORM
       setFormData({
-
         food_id: "",
-
         quantity: "",
-
         total_calories: "",
-
         consumed_at: "",
-
         notes: ""
       });
 
       // REFRESH DATA
       setTimeout(() => {
-
         loadFoods();
-
       }, 300);
 
     } catch (error) {
-
       console.log(error);
-
-      alert(
-        "Gagal menyimpan food diary"
-      );
+      alert("Gagal menyimpan food diary. Periksa apakah ID makanan tersedia di database!");
     }
   };
 
