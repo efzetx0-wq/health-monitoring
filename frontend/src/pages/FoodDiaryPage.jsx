@@ -35,54 +35,27 @@ export default function FoodDiaryPage() {
     });
 
   // DATABASE MAKANAN
+  // Ubah foodDatabase di FoodDiaryPage.jsx Anda menjadi 4 menu ini saja agar sinkron dengan seeder:
   const foodDatabase = [
-
     {
       id: 1,
-      food_name: "Nasi Goreng",
-      calories: 267
-    },
-
-    {
-      id: 2,
-      food_name: "Mie Goreng",
+      food_name: "Nasi Goreng Ayam", // ID 1 di Seeder
       calories: 350
     },
-
+    {
+      id: 2,
+      food_name: "Sate Ayam (5 Tusuk)", // ID 2 di Seeder
+      calories: 225
+    },
     {
       id: 3,
-      food_name: "Sate Ayam",
-      calories: 216
-    },
-
-    {
-      id: 4,
-      food_name: "Bakso",
-      calories: 180
-    },
-
-    {
-      id: 5,
-      food_name: "Rendang",
-      calories: 468
-    },
-
-    {
-      id: 6,
-      food_name: "Gado-Gado",
+      food_name: "Gado-Gado", // ID 3 di Seeder
       calories: 295
     },
-
     {
-      id: 7,
-      food_name: "Soto Ayam",
-      calories: 150
-    },
-
-    {
-      id: 8,
-      food_name: "Ayam Goreng",
-      calories: 260
+      id: 4,
+      food_name: "Bakso Sapi Semangkok", // ID 4 di Seeder
+      calories: 325
     }
   ];
 
