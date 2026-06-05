@@ -168,10 +168,18 @@ export default function SleepPage() {
     e.preventDefault();
 
     try {
+      // KITA BERSIHKAN DATA DI SINI AGAR SESUAI 100% DENGAN HARAPAN LARAVEL
+      const payload = {
+        ...formData,
+        // 1. Ambil teks kualitas aslinya, lalu paksa jadi huruf kecil ("excellent")
+        sleep_quality: formData.sleep_quality ? formData.sleep_quality.toLowerCase() : "good",
+        
+        // 2. Pastikan durasi dikirim sebagai angka murni, bukan string
+        sleep_duration: formData.sleep_duration ? parseFloat(formData.sleep_duration) : 0
+      };
 
-      await createSleepTracking(
-        formData
-      );
+      // Kirim payload yang sudah bersih
+      await createSleepTracking(payload);
 
       setMessage(
         "Data tidur berhasil disimpan"
