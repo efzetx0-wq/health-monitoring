@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import {
-  getDailyProgress,
   getHealthProfile,
   getActivities,
   getSleepData
@@ -34,7 +33,7 @@ export default function DashboardPage() {
 
   const loadDashboard = async () => {
     try {
-      // Mengambil data riwayat asli dari fitur yang sudah Anda simpan
+      // 1. Ambil data asli dari masing-masing fitur yang sudah Anda simpan
       const profileData = await getHealthProfile();
       const activityData = await getActivities();
       const sleep = await getSleepData();
@@ -50,22 +49,31 @@ export default function DashboardPage() {
   };
 
   // ==========================================
-  // LOGIKA AMBIL DATA HARI INI SECARA DINAMIS
+  // AMBIL DATA AKTIVITAS HARI INI (DARI FITUR ACTIVITIES)
   // ==========================================
   
-  // dapatkan tanggal hari ini dengan format YYYY-MM-DD (sesuai database Anda)
-  const todayString = new Date().toISOString().split("T")[0];
+  // Mendapatkan tanggal hari ini berdasarkan zona waktu lokal PC/HP (Format: YYYY-MM-DD)
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const todayString = `${year}-${month}-${day}`;
 
-  // Cari apakah ada data aktivitas untuk hari ini
-  const activityToday = activities.find(
-    (item) => item.activity_date && item.activity_date.includes(todayString)
-  ) || activities[0]; // Jika tidak ada data hari ini, tampilkan data entri terbaru sebagai cadangan
+  // Cari data aktivitas yang tanggalnya cocok dengan hari ini
+  const activityToday = activities.find((item) => {
+    if (!item.activity_date) return false;
+    // Memotong string jika database mengirim format "YYYY-MM-DD HH:mm:ss" menjadi "YYYY-MM-DD" saja
+    return item.activity_date.substring(0, 10) === todayString;
+  }) || activities[activities.length - 1] || activities[0]; // Cadangan: ambil data entri terakhir jika tanggal tidak cocok
 
+  // Masukkan data langkah kaki dan kalori yang terbakar hari ini ke dalam variabel kartu
   const stepsToday = activityToday ? Number(activityToday.steps || 0) : 0;
   const caloriesToday = activityToday ? Number(activityToday.calories_burned || 0) : 0;
 
-  // Perhitungan Rata-Rata Tidur (Avrg Sleep) dari seluruh history database Anda
-  const avrgSleep = sleepData.length > 0
+  // ==========================================
+  // HITUNG RATA-RATA TIDUR (DARI FITUR SLEEP)
+  // ==========================================
+  const averageSleep = sleepData.length > 0
     ? (
         sleepData.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / 
         sleepData.length
@@ -89,7 +97,7 @@ export default function DashboardPage() {
     });
   }
 
-  if (Number(avrgSleep) < 7) {
+  if (Number(averageSleep) < 7) {
     healthInsights.push({
       type: "warning",
       message: "Your sleep duration is below recommended levels."
@@ -117,7 +125,7 @@ export default function DashboardPage() {
 
   return (
     <MainLayout>
-      {/* Container Responsif untuk Smartphone (pb-24 mencegah tertutup navbar bawah) */}
+      {/* Kontainer responsif untuk smartphone (pb-24 mengamankan area tombol bawah HP) */}
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
         
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -125,11 +133,11 @@ export default function DashboardPage() {
         </h1>
 
         {/* ========================================== */}
-        {/* 1. STATS CARDS (GRID FLEKSIBEL HP - PC)    */}
+        {/* 1. STATS CARDS (DATA REAL TIME FITUR ANDA) */}
         {/* ========================================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           
-          {/* STEPS CARD */}
+          {/* KARTU LANGKAH KAKI (FITUR ACTIVITIES) */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               Steps Today
@@ -139,7 +147,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* CALORIES CARD */}
+          {/* KARTU KALORI TERBAKAR (FITUR ACTIVITIES) */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               Calories Burned
@@ -149,17 +157,17 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* AVRG SLEEP CARD (PERUBAHAN DISINI) */}
+          {/* KARTU AVERAGE SLEEP (FITUR SLEEP) */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Avrg Sleep
+              Average Sleep
             </h2>
             <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {avrgSleep} <span className="text-xs font-normal text-gray-400">hours</span>
+              {averageSleep} <span className="text-xs font-normal text-gray-400">hours</span>
             </p>
           </div>
 
-          {/* BMI CARD */}
+          {/* KARTU BMI STATUS (FITUR HEALTH PROFILE) */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               BMI Status
@@ -230,7 +238,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ========================================== */}
-        {/* 4. CHARTS TRENDS SECTION (AMAN UNTUK v4)   */}
+        {/* 4. CHARTS TRENDS SECTION (TAILWIND v4 SAFE)*/}
         {/* ========================================== */}
         <div className="space-y-8">
           
