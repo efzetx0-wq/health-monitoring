@@ -1,53 +1,25 @@
-import axios from "axios";
+// UBAH DISINI: Import instance api bentukan Anda sendiri, bukan axios murni
+import api from "../api/axios";
 
-const API_URL =
-  "http://127.0.0.1:8000/api";
-
-const getToken = () => {
-
-  return localStorage.getItem(
-    "token"
-  );
+const getAuthConfig = () => {
+  const token = localStorage.getItem("token");
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
 };
 
 // GET PROFILE
-export const getHealthProfile =
-  async () => {
-
-  const response =
-    await axios.get(
-
-      `${API_URL}/health-profile`,
-
-      {
-        headers: {
-          Authorization:
-            `Bearer ${getToken()}`
-        }
-      }
-    );
-
+export const getHealthProfile = async () => {
+  // Menggunakan 'api.get' agar otomatis mengarah ke base URL yang benar
+  const response = await api.get("/health-profile", getAuthConfig());
   return response.data;
 };
 
 // SAVE PROFILE
-export const saveHealthProfile =
-  async (data) => {
-
-  const response =
-    await axios.post(
-
-      `${API_URL}/health-profile`,
-
-      data,
-
-      {
-        headers: {
-          Authorization:
-            `Bearer ${getToken()}`
-        }
-      }
-    );
-
+export const saveHealthProfile = async (data) => {
+  // Menggunakan 'api.post' agar aman dan membawa token yang valid
+  const response = await api.post("/health-profile", data, getAuthConfig());
   return response.data;
 };
