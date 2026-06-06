@@ -43,3 +43,11 @@ export const createSleepTracking = async (data) => {
 
   return response.data;
 };
+
+// ===============================================================
+// TAMBAHKAN FUNGSI INI DI PALING BAWAH AGAR ERROR VERCEL HILANG
+// ===============================================================
+export const deleteSleepTracking = async (id) => {
+  const response = await api.delete(`/sleep-trackings/${id}`, getAuthConfig());
+  return response.data;
+};
