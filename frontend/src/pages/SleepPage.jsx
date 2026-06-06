@@ -181,6 +181,10 @@ export default function SleepPage() {
       // Kirim payload yang sudah bersih
       await createSleepTracking(payload);
 
+      window.dispatchEvent(
+      new Event("dashboard-update")
+    );
+
       setMessage(
         "Data tidur berhasil disimpan"
       );

@@ -28,8 +28,30 @@ export default function DashboardPage() {
   const [reminders, setReminders] = useState([]);
 
   useEffect(() => {
+
+  loadDashboard();
+
+  const handleUpdate = () => {
+
     loadDashboard();
-  }, []);
+
+  };
+
+  window.addEventListener(
+    "dashboard-update",
+    handleUpdate
+  );
+
+  return () => {
+
+    window.removeEventListener(
+      "dashboard-update",
+      handleUpdate
+    );
+
+  };
+
+}, []);
 
   const loadDashboard = async () => {
     try {

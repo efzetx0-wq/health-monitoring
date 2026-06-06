@@ -139,6 +139,10 @@ export default function HealthProfilePage() {
         formData
       );
 
+      window.dispatchEvent(
+      new Event("dashboard-update")
+    );
+
       setMessage(
         "Profile berhasil disimpan"
       );

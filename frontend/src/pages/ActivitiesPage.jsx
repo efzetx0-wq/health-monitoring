@@ -113,6 +113,10 @@ export default function ActivitiesPage() {
         formData
       );
 
+      window.dispatchEvent(
+      new Event("dashboard-update")
+    );
+
       setMessage(
         "Aktivitas berhasil ditambahkan"
       );
