@@ -28,34 +28,24 @@ export default function DashboardPage() {
   const [reminders, setReminders] = useState([]);
 
   useEffect(() => {
-
-  loadDashboard();
-
-  const handleUpdate = () => {
-
+    // Load data pertama kali saat halaman dibuka
     loadDashboard();
 
-  };
+    // Fungsi trigger otomatis ketika ada event penyimpanan dari fitur lain
+    const handleUpdate = () => {
+      loadDashboard();
+    };
 
-  window.addEventListener(
-    "dashboard-update",
-    handleUpdate
-  );
+    // Mendengarkan signal perubahan data dari fitur Activities, Sleep, & Profile
+    window.addEventListener("dashboard-update", handleUpdate);
 
-  return () => {
-
-    window.removeEventListener(
-      "dashboard-update",
-      handleUpdate
-    );
-
-  };
-
-}, []);
+    return () => {
+      window.removeEventListener("dashboard-update", handleUpdate);
+    };
+  }, []);
 
   const loadDashboard = async () => {
     try {
-      // 1. Ambil data asli dari masing-masing fitur yang sudah Anda simpan
       const profileData = await getHealthProfile();
       const activityData = await getActivities();
       const sleep = await getSleepData();
@@ -71,29 +61,33 @@ export default function DashboardPage() {
   };
 
   // ==========================================
-  // AMBIL DATA AKTIVITAS HARI INI (DARI FITUR ACTIVITIES)
+  // AMBIL DATA AKTIVITAS HARI INI (FITUR ACTIVITIES)
   // ==========================================
-  
-  // Mendapatkan tanggal hari ini berdasarkan zona waktu lokal PC/HP (Format: YYYY-MM-DD)
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   const todayString = `${year}-${month}-${day}`;
 
-  // Cari data aktivitas yang tanggalnya cocok dengan hari ini
-  const activityToday = activities.find((item) => {
+  // Cari data yang benar-benar cocok dengan tanggal hari ini
+  let activityToday = activities.find((item) => {
     if (!item.activity_date) return false;
-    // Memotong string jika database mengirim format "YYYY-MM-DD HH:mm:ss" menjadi "YYYY-MM-DD" saja
     return item.activity_date.substring(0, 10) === todayString;
-  }) || activities[activities.length - 1] || activities[0]; // Cadangan: ambil data entri terakhir jika tanggal tidak cocok
+  });
 
-  // Masukkan data langkah kaki dan kalori yang terbakar hari ini ke dalam variabel kartu
+  // Jika hari ini belum ada data baru yang masuk, ambil entri teratas (paling baru di-input) secara otomatis
+  if (!activityToday && activities.length > 0) {
+    activityToday = [...activities].sort((a, b) => 
+      new Date(b.activity_date || b.created_at) - new Date(a.activity_date || a.created_at)
+    )[0];
+  }
+
+  // KEMBALI MENGGUNAKAN steps (DENGAN S) SESUAI DATABASE ANDA
   const stepsToday = activityToday ? Number(activityToday.steps || 0) : 0;
   const caloriesToday = activityToday ? Number(activityToday.calories_burned || 0) : 0;
 
   // ==========================================
-  // HITUNG RATA-RATA TIDUR (DARI FITUR SLEEP)
+  // HITUNG AVERAGE SLEEP (FITUR SLEEP)
   // ==========================================
   const averageSleep = sleepData.length > 0
     ? (
@@ -147,7 +141,6 @@ export default function DashboardPage() {
 
   return (
     <MainLayout>
-      {/* Kontainer responsif untuk smartphone (pb-24 mengamankan area tombol bawah HP) */}
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
         
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -155,11 +148,11 @@ export default function DashboardPage() {
         </h1>
 
         {/* ========================================== */}
-        {/* 1. STATS CARDS (DATA REAL TIME FITUR ANDA) */}
+        {/* 1. STATS CARDS                             */}
         {/* ========================================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           
-          {/* KARTU LANGKAH KAKI (FITUR ACTIVITIES) */}
+          {/* KARTU STEPS TODAY */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               Steps Today
@@ -169,7 +162,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* KARTU KALORI TERBAKAR (FITUR ACTIVITIES) */}
+          {/* KARTU CALORIES BURNED */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               Calories Burned
@@ -179,7 +172,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* KARTU AVERAGE SLEEP (FITUR SLEEP) */}
+          {/* KARTU AVERAGE SLEEP */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               Average Sleep
@@ -189,7 +182,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* KARTU BMI STATUS (FITUR HEALTH PROFILE) */}
+          {/* KARTU BMI STATUS */}
           <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
             <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
               BMI Status
@@ -260,7 +253,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ========================================== */}
-        {/* 4. CHARTS TRENDS SECTION (TAILWIND v4 SAFE)*/}
+        {/* 4. CHARTS TRENDS SECTION                   */}
         {/* ========================================== */}
         <div className="space-y-8">
           
