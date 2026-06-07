@@ -15,7 +15,8 @@ import {
   FaBullseye,
   FaBell,
   FaSignOutAlt,
-  FaRobot
+  FaRobot,
+  FaUserMd 
 } from "react-icons/fa";
 
 import {
@@ -93,6 +94,12 @@ export default function Sidebar() {
       name: "Reminders",
       path: "/reminders",
       icon: <FaBell />
+    },
+
+    {
+      name: "Consultation",
+      path: "/doctors",
+      icon: <FaUserMd />
     },
 
     {

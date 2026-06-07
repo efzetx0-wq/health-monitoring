@@ -54,6 +54,12 @@ from "./pages/DailyTargetsPage";
 import ReminderPage
 from "./pages/ReminderPage";
 
+import DoctorsPage
+from "./pages/DoctorsPage";
+
+import DoctorChatPage 
+from "./pages/DoctorChatPage";
+
 import AiChatPage 
 from "./pages/AiChatPage";
 
@@ -165,6 +171,28 @@ export default function App() {
           <ProtectedRoute>
 
             <SleepPage />
+
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/doctors"
+        element={
+          <ProtectedRoute>
+
+            <DoctorsPage />
+
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/doctor-chat/:doctorId"
+        element={
+          <ProtectedRoute>
+
+            <DoctorChatPage />
 
           </ProtectedRoute>
         }

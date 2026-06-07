@@ -3,7 +3,7 @@ import MainLayout from "../layouts/MainLayout";
 import { generateWeeklyReport } from "../services/reportService";
 import jsPDF from "jspdf";
 
-// IMPORT IKON: Menambahkan ikon visual premium di bagian Laporan
+
 import { FaRegFilePdf, FaRobot, FaMoon, FaSun } from "react-icons/fa";
 
 export default function ReportPage() {
