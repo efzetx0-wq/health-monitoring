@@ -6,8 +6,16 @@ import {
   getSleepData
 } from "../services/dashboardService";
 import { getReminders } from "../services/reminderService";
-// IMPORT BARU: Mengimpor service AI insight
+// IMPORT SERVICE AI: Mengimpor fungsi untuk mengambil insight dari Groq AI
 import { getAiDashboardInsight } from "../services/chatService"; 
+
+// IMPORT IKON: Menggunakan react-icons/fa untuk kartu statistik
+import { 
+  FaWalking, 
+  FaFire, 
+  FaBed, 
+  FaWeight 
+} from "react-icons/fa";
 
 import {
   ResponsiveContainer,
@@ -30,13 +38,15 @@ export default function DashboardPage() {
   const [sleepData, setSleepData] = useState([]);
   const [reminders, setReminders] = useState([]);
   
-  // STATE BARU: Untuk menyimpan rekomendasi AI dan status loading
+  // STATE BARU: Menyimpan hasil rekomendasi dari Groq AI dan status loading animasinya
   const [aiInsights, setAiInsights] = useState([]);
   const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
+    // Memuat seluruh data utama pertama kali
     loadDashboard();
 
+    // Fungsi trigger otomatis ketika ada event penyimpanan atau update dari fitur lain
     const handleUpdate = () => {
       loadDashboard();
     };
@@ -60,14 +70,14 @@ export default function DashboardPage() {
       setSleepData(Array.isArray(sleep) ? sleep : []);
       setReminders(Array.isArray(reminderData) ? reminderData : []);
 
-      // PROSES TRIGGER AI INSIGHT
-      // Hitung variabel penunjang sebelum dikirim ke AI
+      // PROSES KRITIKAL AI INSIGHTS
+      // 1. Hitung variabel penunjang hari ini agar siap dikirim ke backend Laravel Anda
       const steps = calculateStepsToday(activityData);
       const calories = calculateCaloriesToday(activityData);
       const averageSleep = calculateAverageSleep(sleep);
       const bmi = profileData?.bmi ? Number(profileData.bmi).toFixed(1) : 0;
 
-      // Panggil fungsi AI
+      // 2. Tembak API Groq AI secara otomatis menggunakan parameter di atas
       fetchAiInsight(steps, calories, averageSleep, bmi);
 
     } catch (error) {
@@ -75,7 +85,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Helper untuk hitung steps today (dipecah agar bisa dibaca fungsi utama)
+  // =========================================================================
+  // LOGIKA FUNGSI BANTU (HELPERS) SEPUTAR DATA HARI INI
+  // =========================================================================
+  
+  // Helper untuk menghitung data langkah kaki hari ini
   const calculateStepsToday = (data) => {
     if (!Array.isArray(data) || data.length === 0) return 0;
     const todayStr = new Date().toISOString().substring(0, 10);
@@ -86,7 +100,7 @@ export default function DashboardPage() {
     return todayData ? Number(todayData.steps || 0) : 0;
   };
 
-  // Helper untuk hitung kalori burned today
+  // Helper untuk menghitung kalori terbakar hari ini
   const calculateCaloriesToday = (data) => {
     if (!Array.isArray(data) || data.length === 0) return 0;
     const todayStr = new Date().toISOString().substring(0, 10);
@@ -97,13 +111,13 @@ export default function DashboardPage() {
     return todayData ? Number(todayData.calories_burned || 0) : 0;
   };
 
-  // Helper untuk rata-rata tidur
+  // Helper untuk menghitung rata-rata tidur keseluruhan
   const calculateAverageSleep = (data) => {
     if (!Array.isArray(data) || data.length === 0) return "0.0";
     return (data.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / data.length).toFixed(1);
   };
 
-  // FUNGSI UTAMA: Mengambil rekomendasi dari Groq AI
+  // FUNGSI UTAMA: Menjembatani request data mentah ke service Groq AI Anda
   const fetchAiInsight = async (steps, calories, averageSleep, bmi) => {
     setLoadingAi(true);
     try {
@@ -116,7 +130,7 @@ export default function DashboardPage() {
       setAiInsights(response.insights || []);
     } catch (err) {
       console.log("Gagal memuat AI Insights:", err);
-      setAiInsights(["Gagal memuat rekomendasi kesehatan otomatis. Pastikan koneksi aman."]);
+      setAiInsights(["Gagal memuat rekomendasi kesehatan otomatis. Pastikan server backend Anda online."]);
     } finally {
       setLoadingAi(false);
     }
@@ -135,54 +149,74 @@ export default function DashboardPage() {
         </h1>
 
         {/* ========================================== */}
-        {/* 1. STATS CARDS                             */}
+        {/* 1. STATS CARDS (DENGAN IKON TAILWIND V4)   */}
         {/* ========================================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           
           {/* KARTU STEPS TODAY */}
-          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
-            <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Steps Today
-            </h2>
-            <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {stepsToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">steps</span>
-            </p>
+          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex justify-between items-center transition-all duration-300 hover:shadow-md">
+            <div className="flex flex-col">
+              <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                Steps Today
+              </h2>
+              <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
+                {stepsToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">steps</span>
+              </p>
+            </div>
+            <div className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 p-3.5 rounded-xl text-xl sm:text-2xl">
+              <FaWalking />
+            </div>
           </div>
 
           {/* KARTU CALORIES BURNED */}
-          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
-            <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Calories Burned
-            </h2>
-            <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {caloriesToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">kcal</span>
-            </p>
+          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex justify-between items-center transition-all duration-300 hover:shadow-md">
+            <div className="flex flex-col">
+              <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                Calories Burned
+              </h2>
+              <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
+                {caloriesToday.toLocaleString('id-ID')} <span className="text-xs font-normal text-gray-400">kcal</span>
+              </p>
+            </div>
+            <div className="bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 p-3.5 rounded-xl text-xl sm:text-2xl">
+              <FaFire />
+            </div>
           </div>
 
           {/* KARTU AVERAGE SLEEP */}
-          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
-            <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              Average Sleep
-            </h2>
-            <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {averageSleep} <span className="text-xs font-normal text-gray-400">hours</span>
-            </p>
+          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex justify-between items-center transition-all duration-300 hover:shadow-md">
+            <div className="flex flex-col">
+              <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                Average Sleep
+              </h2>
+              <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
+                {averageSleep} <span className="text-xs font-normal text-gray-400">hours</span>
+              </p>
+            </div>
+            <div className="bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 p-3.5 rounded-xl text-xl sm:text-2xl">
+              <FaBed />
+            </div>
           </div>
 
           {/* KARTU BMI STATUS */}
-          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex flex-col justify-between">
-            <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              BMI Status
-            </h2>
-            <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-              {profile?.bmi ? Number(profile.bmi).toFixed(1) : "0.0"}
-            </p>
+          <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 flex justify-between items-center transition-all duration-300 hover:shadow-md">
+            <div className="flex flex-col">
+              <h2 className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                BMI Status
+              </h2>
+              <p className="text-2xl sm:text-3xl font-bold mt-2 text-gray-900 dark:text-white">
+                {profile?.bmi ? Number(profile.bmi).toFixed(1) : "0.0"}
+              </p>
+            </div>
+            <div className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl text-xl sm:text-2xl">
+              <FaWeight />
+            </div>
           </div>
 
         </div>
 
         {/* ========================================== */}
-        {/* 2. AI HEALTH INSIGHTS (KINI DINAMIS!)      */}
+        {/* 2. AI HEALTH INSIGHTS (DINAMIS DARI GROQ)  */}
         {/* ========================================== */}
         <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -192,7 +226,7 @@ export default function DashboardPage() {
           </div>
 
           {loadingAi ? (
-            /* Efek Shimmer Loading Animasi */
+            /* Efek Animasi Shimmer Selagi AI Berpikir */
             <div className="space-y-3 animate-pulse">
               <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
               <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
