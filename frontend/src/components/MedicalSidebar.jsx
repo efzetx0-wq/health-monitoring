@@ -9,7 +9,8 @@ import {
   Users,
   FileHeart,
   HeartPulse,
-  LogOut
+  LogOut,
+  MessageSquare 
 } from "lucide-react";
 
 export default function MedicalSidebar() {
@@ -48,6 +49,13 @@ export default function MedicalSidebar() {
       path: "/medical-patients",
       icon: <Users size={20} />
     },
+
+    {
+      name: "Consultations",
+      path: "/medical-chats",
+      icon: <MessageSquare size={20} />
+    },
+
 
     {
       name: "Health Reports",

@@ -90,6 +90,9 @@ from "./pages/MedicalPatientDetailPage";
 import MedicalReportsPage
 from "./pages/MedicalReportsPage";
 
+import MedicalChatsPage
+from "./pages/MedicalChatsPage";
+
 export default function App() {
 
     useEffect(() => {
@@ -316,6 +319,17 @@ export default function App() {
           <MedicalRoute>
 
             <MedicalPatientsPage />
+
+          </MedicalRoute>
+        }
+      />
+
+      <Route
+        path="/medical-chats"
+        element={
+          <MedicalRoute>
+
+            <MedicalChatsPage />
 
           </MedicalRoute>
         }
