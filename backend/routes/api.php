@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\MedicalController;
 use App\Http\Controllers\Api\GoogleFitController;
 use App\Http\Controllers\Api\ChatController;
-
+use App\Http\Controllers\Api\DoctorChatController;
 // ==============================================================================
 // --- RUTE PUBLIK (Bisa diakses tanpa login) ---
 // ==============================================================================
@@ -86,4 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat-ai', [ChatController::class, 'chat']);
 
     Route::post('/dashboard-insight', [ChatController::class, 'getDashboardInsight']);
+
+    Route::get('/doctor-consultation/messages/{partnerId}', [DoctorChatController::class, 'getMessages']);
+    Route::post('/doctor-consultation/send', [DoctorChatController::class, 'sendMessage']);
 });

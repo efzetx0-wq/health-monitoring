@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import MedicalSidebar from "../components/MedicalSidebar";
 import api from "../api/axios";
+import { getChatMessages, sendChatMessage } from "../services/doctorChatService";
 import { 
   User, 
   Send, 
@@ -9,7 +10,7 @@ import {
   FileText, 
   MessageSquare,
   Activity,
-  ArrowLeft // IMPORT BARU: Ikon panah kembali untuk navigasi mobile
+  ArrowLeft
 } from "lucide-react";
 
 export default function MedicalChatsPage() {
@@ -19,19 +20,43 @@ export default function MedicalChatsPage() {
   const [inputText, setInputText] = useState("");
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  // STATE BARU: Mengontrol tampilan layar di HP (apakah sedang melihat daftar pasien atau ruang chat)
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
 
   const fileInputRef = useRef(null);
   const chatEndRef = useRef(null);
 
-  // Ambil daftar pasien yang aktif berkonsultasi
   useEffect(() => {
     fetchActivePatients();
   }, []);
 
-  // Auto-scroll ke pesan terbawah saat obrolan dibuka
+  // POLLING UTAMA UNTUK DOKTER: Mengambil pesan dari pasien terpilih setiap 3 detik
+  useEffect(() => {
+    if (!selectedPatient) return;
+
+    const fetchMessages = async () => {
+      try {
+        const data = await getChatMessages(selectedPatient.id);
+        const mapped = data.map(msg => ({
+          id: msg.id,
+          sender: msg.sender_id === selectedPatient.id ? "user" : "doctor",
+          text: msg.message,
+          fileUrl: msg.file_url,
+          isImage: msg.is_image,
+          linkUrl: msg.link_url,
+          time: new Date(msg.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+        }));
+        setMessages(mapped);
+      } catch (err) {
+        console.log("Error fetch patient chat:", err);
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 3000); // Polling 3 detik
+
+    return () => clearInterval(interval);
+  }, [selectedPatient]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -42,7 +67,6 @@ export default function MedicalChatsPage() {
       const filteredPatients = response.data.filter(u => u.role === "user");
       setPatients(filteredPatients);
       
-      // Pada layar desktop (lebar), pilih pasien pertama secara default jika ada data
       if (filteredPatients.length > 0 && window.innerWidth >= 768) {
         handleSelectPatient(filteredPatients[0], false);
       }
@@ -55,43 +79,26 @@ export default function MedicalChatsPage() {
 
   const handleSelectPatient = (patient, triggerMobileView = true) => {
     setSelectedPatient(patient);
-    
-    // Aktifkan tampilan chat di mobile jika dipicu
     if (triggerMobileView) {
       setShowChatOnMobile(true);
     }
-
-    // Simulasi inisiasi percakapan harian
-    setMessages([
-      {
-        id: 1,
-        sender: "user",
-        text: `Halo Dokter, saya ${patient.name}. Saya ingin berkonsultasi mengenai hasil pemantauan kesehatan harian saya.`,
-        time: "10:00"
-      },
-      {
-        id: 2,
-        sender: "doctor",
-        text: `Halo ${patient.name}, silakan lampirkan data atau ceritakan keluhan Anda secara detail harian.`,
-        time: "10:05"
-      }
-    ]);
+    setMessages([]); // Kosongkan sementara sampai polling data dari DB masuk
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const newMsg = {
-      id: messages.length + 1,
-      sender: "doctor",
-      text: inputText,
-      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-    };
-
-    setMessages([...messages, newMsg]);
-    setInputText("");
-    setShowAttachMenu(false);
+    try {
+      await sendChatMessage({
+        receiver_id: selectedPatient.id,
+        message: inputText
+      });
+      setInputText("");
+      setShowAttachMenu(false);
+    } catch (err) {
+      console.log("Error sending doctor reply:", err);
+    }
   };
 
   const handleAttachmentClick = () => {
@@ -99,54 +106,48 @@ export default function MedicalChatsPage() {
     setShowAttachMenu(false);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const isImage = file.type.startsWith("image/");
-    const newMsg = {
-      id: messages.length + 1,
-      sender: "doctor",
-      text: isImage ? `📷 Mengirim Foto: ${file.name}` : `📄 Mengirim Dokumen: ${file.name}`,
-      fileUrl: URL.createObjectURL(file),
-      isImage: isImage,
-      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-    };
-
-    setMessages([...messages, newMsg]);
+    try {
+      await sendChatMessage({
+        receiver_id: selectedPatient.id,
+        message: isImage ? `📷 Mengirim Foto: ${file.name}` : `📄 Mengirim Dokumen: ${file.name}`,
+        file_url: URL.createObjectURL(file),
+        is_image: isImage
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  const handleLinkInsert = () => {
+  const handleLinkInsert = async () => {
     const url = prompt("Masukkan URL/Link rujukan resep atau dokumen medis:");
     if (!url) return;
 
-    const newMsg = {
-      id: messages.length + 1,
-      sender: "doctor",
-      text: `🔗 Tautan Rujukan Medis: `,
-      linkUrl: url,
-      time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-    };
-
-    setMessages([...messages, newMsg]);
-    setShowAttachMenu(false);
+    try {
+      await sendChatMessage({
+        receiver_id: selectedPatient.id,
+        message: `🔗 Tautan Rujukan Medis: `,
+        link_url: url
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
     <div className="flex bg-[#0f172a] min-h-screen text-white overflow-hidden">
       
-      {/* SIDEBAR MEDICAL (Otomatis tersembunyi di HP saat ruang obrolan aktif agar luas) */}
       <div className={`${showChatOnMobile ? "hidden md:block" : "block"}`}>
         <MedicalSidebar />
       </div>
 
-      {/* WORKSPACE UTAMA CHAT (FLEXIBLE 2-COLUMN DESIGN) */}
       <div className="flex-1 flex flex-col md:flex-row h-screen overflow-hidden">
         
-        {/* KOLOM KIRI: DAFTAR PASIEN MASUK */}
-        <div className={`w-full md:w-80 border-r border-gray-850 bg-[#111827] flex flex-col h-full ${
-          showChatOnMobile ? "hidden md:flex" : "flex"
-        }`}>
+        <div className={`w-full md:w-80 border-r border-gray-850 bg-[#111827] flex flex-col h-full ${showChatOnMobile ? "hidden md:flex" : "flex"}`}>
           <div className="p-5 border-b border-gray-800">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <MessageSquare className="text-cyan-400" size={20} />
@@ -184,24 +185,14 @@ export default function MedicalChatsPage() {
           </div>
         </div>
 
-        {/* KOLOM KANAN: RUANG OBROLAN CHAT */}
-        <div className={`flex-1 flex flex-col h-full bg-[#0f172a] ${
-          showChatOnMobile ? "flex" : "hidden md:flex"
-        }`}>
+        <div className={`flex-1 flex flex-col h-full bg-[#0f172a] ${showChatOnMobile ? "flex" : "hidden md:flex"}`}>
           {selectedPatient ? (
             <>
-              {/* Header Ruang Chat */}
               <div className="p-4 bg-[#111827] border-b border-gray-800/80 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  
-                  {/* TOMBOL KEMBALI (Hanya muncul di HP untuk kembali ke daftar pasien) */}
-                  <button 
-                    onClick={() => setShowChatOnMobile(false)}
-                    className="md:hidden p-2 hover:bg-gray-800 rounded-xl text-gray-400 transition-all cursor-pointer mr-1"
-                  >
+                  <button onClick={() => setShowChatOnMobile(false)} className="md:hidden p-2 hover:bg-gray-800 rounded-xl text-gray-400 transition-all cursor-pointer mr-1">
                     <ArrowLeft size={20} />
                   </button>
-
                   <div className="bg-cyan-500/10 p-3 rounded-xl text-cyan-400">
                     <User size={20} />
                   </div>
@@ -214,7 +205,6 @@ export default function MedicalChatsPage() {
                 </div>
               </div>
 
-              {/* Tampilan Isi Pesan */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-950/20">
                 {messages.map(msg => (
                   <div key={msg.id} className={`flex ${msg.sender === "doctor" ? "justify-end" : "justify-start"}`}>
@@ -224,85 +214,36 @@ export default function MedicalChatsPage() {
                         : "bg-[#111827] text-gray-200 border border-gray-800 rounded-tl-none"
                     }`}>
                       <p className="leading-relaxed wrap-break-word">{msg.text}</p>
-
-                      {msg.fileUrl && msg.isImage && (
-                        <img src={msg.fileUrl} alt="Medis" className="mt-2 rounded-lg max-h-48 object-cover border border-white/10" />
-                      )}
-
-                      {msg.fileUrl && !msg.isImage && (
-                        <a href={msg.fileUrl} target="_blank" rel="noreferrer" className="block mt-2 text-xs font-semibold underline text-cyan-300 hover:text-white">
-                          Buka Lampiran Medis
-                        </a>
-                      )}
-
-                      {msg.linkUrl && (
-                        <a href={msg.linkUrl} target="_blank" rel="noreferrer" className="block mt-1 font-bold underline text-amber-300 hover:text-amber-200 break-all">
-                          {msg.linkUrl}
-                        </a>
-                      )}
-
-                      <span className={`block text-[10px] mt-1.5 text-right ${msg.sender === "doctor" ? "text-cyan-200" : "text-gray-500"}`}>
-                        {msg.time}
-                      </span>
+                      {msg.fileUrl && msg.isImage && <img src={msg.fileUrl} alt="Medis" className="mt-2 rounded-lg max-h-48 object-cover border border-white/10" />}
+                      {msg.fileUrl && !msg.isImage && <a href={msg.fileUrl} target="_blank" rel="noreferrer" className="block mt-2 text-xs font-semibold underline text-cyan-300 hover:text-white">Buka Lampiran Medis</a>}
+                      {msg.linkUrl && <a href={msg.linkUrl} target="_blank" rel="noreferrer" className="block mt-1 font-bold underline text-amber-300 hover:text-amber-200 break-all">{msg.linkUrl}</a>}
+                      <span className={`block text-[10px] mt-1.5 text-right ${msg.sender === "doctor" ? "text-cyan-200" : "text-gray-500"}`}>{msg.time}</span>
                     </div>
                   </div>
                 ))}
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Input Area */}
               <div className="p-3 bg-[#111827] border-t border-gray-800 relative">
                 {showAttachMenu && (
                   <div className="absolute bottom-16 left-4 bg-[#1f2937] border border-gray-800 rounded-2xl p-1.5 flex flex-col gap-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 shadow-xl">
-                    <button
-                      type="button"
-                      onClick={handleAttachmentClick}
-                      className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full"
-                    >
+                    <button type="button" onClick={handleAttachmentClick} className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full">
                       <ImageIcon size={14} className="text-cyan-400" /> Upload Foto
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleLinkInsert}
-                      className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full"
-                    >
+                    <button type="button" onClick={handleLinkInsert} className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full">
                       <FileText size={14} className="text-amber-400" /> Kirim Link Rujukan
                     </button>
                   </div>
                 )}
 
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                  accept="image/*,application/pdf"
-                />
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf" />
 
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAttachMenu(!showAttachMenu)}
-                    className={`p-3 rounded-xl transition-all cursor-pointer text-[#9ca3af] ${
-                      showAttachMenu ? "bg-gray-800 text-white rotate-45" : "bg-[#1f2937] hover:bg-gray-800"
-                    }`}
-                  >
+                  <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} className={`p-3 rounded-xl transition-all cursor-pointer text-[#9ca3af] ${showAttachMenu ? "bg-gray-800 text-white rotate-45" : "bg-[#1f2937] hover:bg-gray-800"}`}>
                     <Paperclip size={18} />
                   </button>
-
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder={`Ketik balasan ke ${selectedPatient.name}...`}
-                    className="flex-1 bg-[#0f172a] border border-gray-800 text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-cyan-500"
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={!inputText.trim()}
-                    className="bg-linear-to-br from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:from-gray-800 disabled:to-gray-800 text-white disabled:text-gray-600 p-3 rounded-xl transition-all cursor-pointer"
-                  >
+                  <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder={`Ketik balasan ke ${selectedPatient.name}...`} className="flex-1 bg-[#0f172a] border border-gray-800 text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-cyan-500" />
+                  <button type="submit" disabled={!inputText.trim()} className="bg-linear-to-br from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:from-gray-800 disabled:to-gray-800 text-white disabled:text-gray-600 p-3 rounded-xl transition-all cursor-pointer">
                     <Send size={18} />
                   </button>
                 </form>
