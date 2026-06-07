@@ -11,44 +11,48 @@ use Illuminate\Support\Facades\Http;
 class ChatController extends Controller
 {
     public function chat(Request $request)
-    {
-        $request->validate([
-            'message' => 'required|string',
+{
+    $request->validate([
+        'message' => 'required|string',
+    ]);
+
+    $userMessage = $request->input('message');
+    $apiKey = env('GROQ_API_KEY');
+
+    try {
+        // 1. TAMBAHKAN withoutVerifying() untuk bypass SSL di Railway
+        $response = Http::withoutVerifying()->withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://api.groq.com/openai/v1/chat/completions', [
+            'model' => 'llama3-8b-8192', 
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'Anda adalah asisten AI kesehatan profesional untuk aplikasi Health App Monitoring System. Berikan jawaban yang ramah, informatif, singkat, dan berfokus pada kesehatan.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $userMessage
+                ]
+            ],
+            'temperature' => 0.7,
         ]);
 
-        $userMessage = $request->input('message');
-        $apiKey = env('GROQ_API_KEY');
-
-        try {
-            // Menembak API Groq
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ])->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model' => 'llama3-8b-8192',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'Anda adalah asisten AI kesehatan profesional untuk aplikasi Health App Monitoring System. Berikan jawaban yang ramah, informatif, singkat, dan berfokus pada kesehatan, olahraga, gizi, dan pola tidur.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $userMessage
-                    ]
-                ],
-                'temperature' => 0.7,
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $reply = $data['choices'][0]['message']['content'];
-                return response()->json(['reply' => $reply]);
-            }
-
-            return response()->json(['error' => 'Gagal mendapatkan respon dari Groq AI'], 500);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+        if ($response->successful()) {
+            $data = $response->json();
+            $reply = $data['choices'][0]['message']['content'];
+            return response()->json(['reply' => $reply]);
         }
+
+        // 2. UBAH BAGIAN INI: Mengembalikan error asli dari Groq agar gampang didebug
+        return response()->json([
+            'error' => 'Groq API Error',
+            'details' => $response->json() // Ini akan memunculkan alasan asli dari Groq
+        ], $response->status());
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
 }
