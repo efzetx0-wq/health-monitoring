@@ -84,4 +84,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/medical/patient/{id}', [MedicalController::class, 'patientDetail']);
 
     Route::post('/chat-ai', [ChatController::class, 'chat']);
+
+    Route::post('/dashboard-insight', [ChatController::class, 'getDashboardInsight']);
 });

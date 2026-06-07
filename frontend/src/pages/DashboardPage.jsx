@@ -6,6 +6,9 @@ import {
   getSleepData
 } from "../services/dashboardService";
 import { getReminders } from "../services/reminderService";
+// IMPORT BARU: Mengimpor service AI insight
+import { getAiDashboardInsight } from "../services/chatService"; 
+
 import {
   ResponsiveContainer,
   LineChart,
@@ -26,17 +29,18 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState([]);
   const [sleepData, setSleepData] = useState([]);
   const [reminders, setReminders] = useState([]);
+  
+  // STATE BARU: Untuk menyimpan rekomendasi AI dan status loading
+  const [aiInsights, setAiInsights] = useState([]);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
-    // Load data pertama kali saat halaman dibuka
     loadDashboard();
 
-    // Fungsi trigger otomatis ketika ada event penyimpanan dari fitur lain
     const handleUpdate = () => {
       loadDashboard();
     };
 
-    // Mendengarkan signal perubahan data dari fitur Activities, Sleep, & Profile
     window.addEventListener("dashboard-update", handleUpdate);
 
     return () => {
@@ -55,89 +59,72 @@ export default function DashboardPage() {
       setActivities(Array.isArray(activityData) ? activityData : []);
       setSleepData(Array.isArray(sleep) ? sleep : []);
       setReminders(Array.isArray(reminderData) ? reminderData : []);
+
+      // PROSES TRIGGER AI INSIGHT
+      // Hitung variabel penunjang sebelum dikirim ke AI
+      const steps = calculateStepsToday(activityData);
+      const calories = calculateCaloriesToday(activityData);
+      const averageSleep = calculateAverageSleep(sleep);
+      const bmi = profileData?.bmi ? Number(profileData.bmi).toFixed(1) : 0;
+
+      // Panggil fungsi AI
+      fetchAiInsight(steps, calories, averageSleep, bmi);
+
     } catch (error) {
       console.log("Error loading dashboard data:", error);
     }
   };
 
-  // ==========================================
-  // AMBIL DATA AKTIVITAS HARI INI (FITUR ACTIVITIES)
-  // ==========================================
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const todayString = `${year}-${month}-${day}`;
+  // Helper untuk hitung steps today (dipecah agar bisa dibaca fungsi utama)
+  const calculateStepsToday = (data) => {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    const todayStr = new Date().toISOString().substring(0, 10);
+    let todayData = data.find(item => item.activity_date?.substring(0, 10) === todayStr);
+    if (!todayData) {
+      todayData = [...data].sort((a, b) => new Date(b.activity_date || b.created_at) - new Date(a.activity_date || a.created_at))[0];
+    }
+    return todayData ? Number(todayData.steps || 0) : 0;
+  };
 
-  // Cari data yang benar-benar cocok dengan tanggal hari ini
-  let activityToday = activities.find((item) => {
-    if (!item.activity_date) return false;
-    return item.activity_date.substring(0, 10) === todayString;
-  });
+  // Helper untuk hitung kalori burned today
+  const calculateCaloriesToday = (data) => {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+    const todayStr = new Date().toISOString().substring(0, 10);
+    let todayData = data.find(item => item.activity_date?.substring(0, 10) === todayStr);
+    if (!todayData) {
+      todayData = [...data].sort((a, b) => new Date(b.activity_date || b.created_at) - new Date(a.activity_date || a.created_at))[0];
+    }
+    return todayData ? Number(todayData.calories_burned || 0) : 0;
+  };
 
-  // Jika hari ini belum ada data baru yang masuk, ambil entri teratas (paling baru di-input) secara otomatis
-  if (!activityToday && activities.length > 0) {
-    activityToday = [...activities].sort((a, b) => 
-      new Date(b.activity_date || b.created_at) - new Date(a.activity_date || a.created_at)
-    )[0];
-  }
+  // Helper untuk rata-rata tidur
+  const calculateAverageSleep = (data) => {
+    if (!Array.isArray(data) || data.length === 0) return "0.0";
+    return (data.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / data.length).toFixed(1);
+  };
 
-  // KEMBALI MENGGUNAKAN steps (DENGAN S) SESUAI DATABASE ANDA
-  const stepsToday = activityToday ? Number(activityToday.steps || 0) : 0;
-  const caloriesToday = activityToday ? Number(activityToday.calories_burned || 0) : 0;
+  // FUNGSI UTAMA: Mengambil rekomendasi dari Groq AI
+  const fetchAiInsight = async (steps, calories, averageSleep, bmi) => {
+    setLoadingAi(true);
+    try {
+      const response = await getAiDashboardInsight({
+        steps,
+        calories,
+        averageSleep,
+        bmi
+      });
+      setAiInsights(response.insights || []);
+    } catch (err) {
+      console.log("Gagal memuat AI Insights:", err);
+      setAiInsights(["Gagal memuat rekomendasi kesehatan otomatis. Pastikan koneksi aman."]);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
-  // ==========================================
-  // HITUNG AVERAGE SLEEP (FITUR SLEEP)
-  // ==========================================
-  const averageSleep = sleepData.length > 0
-    ? (
-        sleepData.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / 
-        sleepData.length
-      ).toFixed(1)
-    : "0.0";
-
-  // ==========================================
-  // LOGIKA AI HEALTH INSIGHTS
-  // ==========================================
-  const healthInsights = [];
-
-  if (stepsToday < 5000) {
-    healthInsights.push({
-      type: "warning",
-      message: "Your physical activity is low. Try walking more today."
-    });
-  } else {
-    healthInsights.push({
-      type: "good",
-      message: "Great job staying active today."
-    });
-  }
-
-  if (Number(averageSleep) < 7) {
-    healthInsights.push({
-      type: "warning",
-      message: "Your sleep duration is below recommended levels."
-    });
-  } else {
-    healthInsights.push({
-      type: "good",
-      message: "Your sleep duration looks healthy."
-    });
-  }
-
-  if (profile?.bmi > 25) {
-    healthInsights.push({
-      type: "warning",
-      message: "Your BMI indicates overweight. Maintain healthy habits."
-    });
-  }
-
-  if (profile?.bmi >= 18 && profile?.bmi <= 25) {
-    healthInsights.push({
-      type: "good",
-      message: "Your BMI is in a healthy range."
-    });
-  }
+  const stepsToday = calculateStepsToday(activities);
+  const caloriesToday = calculateCaloriesToday(activities);
+  const averageSleep = calculateAverageSleep(sleepData);
 
   return (
     <MainLayout>
@@ -195,26 +182,34 @@ export default function DashboardPage() {
         </div>
 
         {/* ========================================== */}
-        {/* 2. AI HEALTH INSIGHTS                      */}
+        {/* 2. AI HEALTH INSIGHTS (KINI DINAMIS!)      */}
         {/* ========================================== */}
         <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 mb-8">
-          <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900 dark:text-white">
-            AI Health Insights
-          </h2>
-          <div className="space-y-3">
-            {healthInsights.map((insight, index) => (
-              <div
-                key={index}
-                className={`p-3.5 rounded-xl text-sm font-medium ${
-                  insight.type === "warning"
-                    ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"
-                    : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                }`}
-              >
-                {insight.message}
-              </div>
-            ))}
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              AI Real-time Health Insights 🤖
+            </h2>
           </div>
+
+          {loadingAi ? (
+            /* Efek Shimmer Loading Animasi */
+            <div className="space-y-3 animate-pulse">
+              <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
+              <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
+              <div className="h-10 bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {aiInsights.map((insight, index) => (
+                <div
+                  key={index}
+                  className="p-3.5 rounded-xl text-sm font-medium bg-blue-50/70 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 border border-blue-100/50 dark:border-blue-900/30"
+                >
+                  ✨ {insight}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ========================================== */}

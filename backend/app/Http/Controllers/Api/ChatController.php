@@ -55,4 +55,63 @@ class ChatController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
+    public function getDashboardInsight(Request $request)
+{
+    // Ambil data yang dikirim oleh Frontend
+    $steps = $request->input('steps', 0);
+    $calories = $request->input('calories', 0);
+    $avgSleep = $request->input('averageSleep', 0);
+    $bmi = $request->input('bmi', 0);
+
+    $apiKey = env('GROQ_API_KEY');
+
+    // Susun prompt berbasis data user agar AI memberikan analisis akurat
+    $prompt = "Berikan 3 poin rekomendasi kesehatan singkat, padat, dan solutif berdasarkan data pasien hari ini:\n";
+    $prompt .= "- Langkah kaki: $steps steps\n";
+    $prompt .= "- Kalori terbakar: $calories kcal\n";
+    $prompt .= "- Rata-rata tidur: $avgSleep jam\n";
+    $prompt .= "- Nilai BMI: $bmi\n\n";
+    $prompt .= "Aturan: Berikan respon langsung berupa JSON array string seperti ini tanpa basa-basi: [\"Saran 1\", \"Saran 2\", \"Saran 3\"]. Pastikan bahasanya ramah dan memotivasi.";
+
+    try {
+        $response = Http::withoutVerifying()->withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://api.groq.com/openai/v1/chat/completions', [
+            'model' => 'llama-3.1-8b-instant', 
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'Anda adalah sistem analisis medis otomatis tingkat tinggi yang hanya merespon dalam format JSON Array murni.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
+            ],
+            'temperature' => 0.3, // Temperatur rendah agar format JSON konsisten aman
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $rawReply = $data['choices'][0]['message']['content'];
+            
+            // Konversi teks JSON string dari AI menjadi array PHP asli
+            $insights = json_decode($rawReply, true);
+
+            // Jika AI gagal mengembalikan format array yang valid, pakai fallback standar
+            if (!is_array($insights)) {
+                $insights = ["Tetap jaga hidrasi tubuh dengan minum air putih yang cukup hari ini."];
+            }
+
+            return response()->json(['insights' => $insights]);
+        }
+
+        return response()->json(['error' => 'Gagal mengambil rekomendasi AI'], 500);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
 }
