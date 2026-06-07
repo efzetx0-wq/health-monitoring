@@ -14,7 +14,8 @@ import {
   FaUtensils,
   FaBullseye,
   FaBell,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaRobot
 } from "react-icons/fa";
 
 import {
@@ -92,6 +93,12 @@ export default function Sidebar() {
       name: "Reminders",
       path: "/reminders",
       icon: <FaBell />
+    },
+
+    {
+      name: "AI Chatbot",
+      path: "/chat-ai",
+      icon: <FaRobot />
     },
 
     {

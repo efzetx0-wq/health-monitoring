@@ -54,6 +54,9 @@ from "./pages/DailyTargetsPage";
 import ReminderPage
 from "./pages/ReminderPage";
 
+import AiChatPage 
+from "./pages/AiChatPage";
+
 import AdminDashboardPage
 from "./pages/AdminDashboardPage";
 
@@ -162,6 +165,17 @@ export default function App() {
           <ProtectedRoute>
 
             <SleepPage />
+
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/chat-ai"
+        element={
+          <ProtectedRoute>
+
+            <AiChatPage />
 
           </ProtectedRoute>
         }

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\HealthReportController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\MedicalController;
 use App\Http\Controllers\Api\GoogleFitController;
+use App\Http\Controllers\Api\ChatController;
 
 // ==============================================================================
 // --- RUTE PUBLIK (Bisa diakses tanpa login) ---
@@ -81,4 +82,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
 
     Route::get('/medical/patient/{id}', [MedicalController::class, 'patientDetail']);
+
+    Route::post('/chat-ai', [ChatController::class, 'chat']);
 });
