@@ -39,29 +39,24 @@ export default function ActivitiesPage() {
     setSyncLoading(true);
     setMessage("");
     try {
-      // KOREKSI: Panggil instance api dengan metode POST menuju rute sinkronisasi Railway Anda
       const response = await api.post("/google-fit/sync");
 
-      // Mengisi form input secara otomatis berdasarkan data sukses dari Laravel
       setFormData({
         ...formData,
         activity_type: "Jalan Kaki (Google Fit)",
         steps: response.data.steps || 0,
         calories_burned: response.data.calories || 0,
-        activity_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD hari ini
+        activity_date: new Date().toISOString().split('T')[0],
         duration_minutes: formData.duration_minutes || "30" 
       });
 
-      setMessage("Data Google Fit berhasil disinkronkan ke formulir! Jangan lupa klik 'Save Activity'.");
+      // TAMBAHKAN 2 BARIS INI:
+      loadActivities(); // Memaksa tabel History membaca ulang database Railway
+      window.dispatchEvent(new Event("dashboard-update")); // Update grafik dashboard
+
+      setMessage("Data Google Fit berhasil disinkronkan ke formulir dan database!");
     } catch (error) {
-      console.error(error);
-      if (error.response && error.response.data && error.response.data.message) {
-        alert(error.response.data.message);
-      } else {
-        alert("Gagal mengambil data. Pastikan akun Google Fit sudah terhubung di menu /google-fit");
-      }
-    } finally {
-      setSyncLoading(false);
+       // ... kode error Anda
     }
   };
 
