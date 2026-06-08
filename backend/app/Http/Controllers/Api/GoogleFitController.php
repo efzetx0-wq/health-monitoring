@@ -131,10 +131,20 @@ class GoogleFitController extends Controller
         'activity_date' => now()->toDateString(),
     ],
     [
-        // TAMBAHKAN BARIS INI: Memberikan nilai untuk kolom activity_type agar MySQL tidak protes
-        'activity_type'   => 'Jalan Kaki (Google Fit)', 
-        'steps'           => $steps,
-        'calories_burned' => $calories,
+        // 1. Mengisi activity_type (Wajib)
+        'activity_type'    => 'Jalan Kaki (Google Fit)', 
+        
+        // 2. Mengisi duration_minutes (Wajib - kita beri default 30 menit atau sesuaikan keinginan Anda)
+        'duration_minutes' => 30, 
+        
+        // 3. Mengisi steps (Sudah aman karena di DB ada default = 0, tapi tetap kita masukkan datanya)
+        'steps'            => $steps,
+        
+        // 4. Mengisi calories_burned (Wajib)
+        'calories_burned'  => $calories,
+        
+        // 5. Notes (Opsional, karena di DB bernilai Null = YES)
+        'notes'            => 'Disinkronkan otomatis via Google Fit API',
     ]
 );
             return response()->json([
