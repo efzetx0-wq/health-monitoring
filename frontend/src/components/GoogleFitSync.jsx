@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-// IMPORT: Panggil instance api buatan kita sendiri, jangan axios mentah lagi
+// IMPORT: Panggil instance api buatan kita sendiri
 import api from '../api/axios'; 
 
 const GoogleFitSync = () => {
@@ -9,7 +9,7 @@ const GoogleFitSync = () => {
 
     // 1. Fungsi untuk mengarahkan pengguna login ke Google
     const handleConnect = () => {
-        // AMAN: Langsung arahkan ke endpoint auth Railway Anda secara absolut
+        // Tetap menggunakan ini untuk membuka gerbang Google OAuth
         window.location.href = "https://health-monitoring-production.up.railway.app/api/google-fit/auth"; 
     };
 
@@ -17,15 +17,22 @@ const GoogleFitSync = () => {
     const handleSync = async () => {
         setLoading(true);
         try {
-            // AMAN: Cukup panggil '/google-fit/sync', config withCredentials otomatis ikut dari file api.js kita
-            const response = await api.get('/google-fit/sync');
+            // BENAR: Ubah menjadi api.post agar sinkron dengan rute di routes/api.php Laravel Anda
+            const response = await api.post('/google-fit/sync');
             
-            setSteps(response.data.steps);
-            setCalories(response.data.calories);
+            // Mengambil data dari response.data sesuai dengan struktur return JSON Laravel
+            setSteps(response.data.steps || 0);
+            setCalories(response.data.calories || 0);
             alert('Sinkronisasi Berhasil!');
         } catch (error) {
-            alert('Gagal sinkronisasi atau Google Fit belum terhubung!');
-            console.error(error);
+            console.error("Detail Error Sinkronisasi:", error.response);
+            
+            // Menampilkan pesan error spesifik dari backend jika ada
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            } else {
+                alert('Gagal mengambil data. Pastikan akun Google Fit sudah terhubung di menu /google-fit.');
+            }
         } finally {
             setLoading(false);
         }
