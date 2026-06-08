@@ -40,19 +40,23 @@ class GoogleFitController extends Controller
         $client->setClientId(env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         
-        // KOREKSI: Gunakan rtrim() agar URL sinkron 100%
         $baseUrl = rtrim(env('APP_URL'), '/');
         $client->setRedirectUri($baseUrl . '/api/google-fit/callback');
 
         $token = $client->fetchAccessTokenWithAuthCode($request->code);
 
-        // KOREKSI AMAN: Ambil ID User dari parameter state yang dikembalikan oleh Google
-        $userId = $request->state ?? Auth::id() ?? 'guest';
+        // KUNCI PERBAIKAN 1: Ambil ID User dari state Google, atau dari Auth jika tersedia
+        $userId = $request->state ?? Auth::id();
         
-        // Simpan token ke cache berdasarkan ID user sesungguhnya
-        Cache::put('google_token_' . $userId, $token, 3600);
+        if ($userId) {
+            // Simpan token di cache selama 24 jam penuh agar tidak cepat kedaluwarsa
+            Cache::put('google_token_' . $userId, $token, 86400);
+        } else {
+            // Cadangan darurat jika dua-duanya tidak terbaca
+            Cache::put('google_token_latest_guest', $token, 3600);
+        }
 
-        // REDIRECT BALIK KE FRONTEND VERCEL SETELAH SELESAI KONEKSI GOOGLE
+        // REDIRECT BALIK KE FRONTEND VERCEL
         $frontendUrl = rtrim(env('CORS_ALLOWED_ORIGINS'), '/');
         return redirect($frontendUrl . '/dashboard?status=google-connected');
     }
@@ -62,20 +66,29 @@ class GoogleFitController extends Controller
         $userId = Auth::id();
         
         if (!$userId) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return response()->json(['message' => 'Sesi login web Anda habis. Silakan relogin ke aplikasi.'], 401);
         }
 
-        // Ambil token dari Cache menggunakan ID User autentikasi Sanctum
-        $token = Cache::get('google_token_' . $userId);
+        // KUNCI PERBAIKAN 2: Cari di cache berdasarkan ID user Anda, jika tidak ketemu coba ambil cadangan guest
+        $token = Cache::get('google_token_' . $userId) ?? Cache::get('google_token_latest_guest');
 
         if (!$token) {
             return response()->json([
-                'message' => 'Google Fit belum terkoneksi atau token kedaluwarsa. Pastikan akun Google Fit sudah terhubung di menu /google-fit.'
+                'message' => 'Google Fit belum terkoneksi atau token kedaluwarsa. Silakan klik ulang tombol Hubungkan Akun Google.'
             ], 401);
         }
 
         $client = new \Google\Client();
         $client->setAccessToken($token);
+
+        // KUNCI PERBAIKAN 3: Jika token dari Google sudah expired, segarkan otomatis
+        if ($client->isAccessTokenExpired()) {
+            if (isset($token['refresh_token'])) {
+                $newToken = $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+                Cache::put('google_token_' . $userId, $newToken, 86400);
+                $client->setAccessToken($newToken);
+            }
+        }
 
         $fitness = new \Google\Service\Fitness($client);
 
