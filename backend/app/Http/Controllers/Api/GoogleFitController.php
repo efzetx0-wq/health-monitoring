@@ -125,14 +125,16 @@ class GoogleFitController extends Controller
             $calories = round($steps * 0.04, 2);
 
             // Simpan atau perbarui data ke tabel physical_activities Anda
-            PhysicalActivity::updateOrCreate(
+           PhysicalActivity::updateOrCreate(
     [
         'user_id'       => $userId,
-        'activity_date' => now()->toDateString(), //  BENAR: Menggunakan 'activity_date'
+        'activity_date' => now()->toDateString(),
     ],
     [
+        // TAMBAHKAN BARIS INI: Memberikan nilai untuk kolom activity_type agar MySQL tidak protes
+        'activity_type'   => 'Jalan Kaki (Google Fit)', 
         'steps'           => $steps,
-        'calories_burned' => $calories, //  BENAR: Sesuaikan dengan nama kolom kalori Anda
+        'calories_burned' => $calories,
     ]
 );
             return response()->json([
