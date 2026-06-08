@@ -126,16 +126,15 @@ class GoogleFitController extends Controller
 
             // Simpan atau perbarui data ke tabel physical_activities Anda
             PhysicalActivity::updateOrCreate(
-                [
-                    'user_id' => $userId,
-                    'date'    => now()->toDateString(),
-                ],
-                [
-                    'steps'    => $steps,
-                    'calories' => $calories,
-                ]
-            );
-
+    [
+        'user_id'       => $userId,
+        'activity_date' => now()->toDateString(), //  BENAR: Menggunakan 'activity_date'
+    ],
+    [
+        'steps'           => $steps,
+        'calories_burned' => $calories, //  BENAR: Sesuaikan dengan nama kolom kalori Anda
+    ]
+);
             return response()->json([
                 'success' => true,
                 'steps' => $steps,
