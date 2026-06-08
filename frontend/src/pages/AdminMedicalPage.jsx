@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // IMPORT BARU: Untuk mengarahkan user ke halaman chat
 import api from "../api/axios";
 import AdminLayout from "../layouts/AdminLayout";
-// TAMBAHAN IKON: MessageSquare (untuk tombol chat)
-import { ShieldPlus, Mail, UserRound, MessageSquare } from "lucide-react";
+// Membersihkan import ikon yang tidak digunakan lagi (UserRound diganti ke ShieldAlert/UserRound sesuai kebutuhan)
+import { ShieldPlus, Mail, UserRound } from "lucide-react";
 
 export default function AdminMedicalPage() {
   const [medicalUsers, setMedicalUsers] = useState([]);
-  const navigate = useNavigate(); // INSTANSIASI: Trigger navigasi halaman
 
   useEffect(() => {
     fetchMedicalUsers();
@@ -16,17 +14,12 @@ export default function AdminMedicalPage() {
   const fetchMedicalUsers = async () => {
     try {
       const response = await api.get("/admin/users");
+      // Memfilter user yang hanya memiliki role 'medical'
       const filtered = response.data.filter((user) => user.role === "medical");
       setMedicalUsers(filtered);
     } catch (error) {
       console.log(error);
     }
-  };
-
-  // FUNGSI BARU: Mengarahkan user ke halaman konsultasi dengan ID dokter spesifik
-  const handleConsultation = (doctorId) => {
-    // Mengarahkan ke halaman chat dokter, contoh route: /doctor-chat/3
-    navigate(`/doctor-chat/${doctorId}`);
   };
 
   return (
@@ -40,7 +33,7 @@ export default function AdminMedicalPage() {
           </div>
           <div>
             <h1 className="text-4xl font-extrabold">Medical Staff</h1>
-            <p className="text-gray-400 mt-1">Manage all medical users and start consultation</p>
+            <p className="text-gray-400 mt-1">Manage and monitor all registered medical users</p>
           </div>
         </div>
 
@@ -62,7 +55,7 @@ export default function AdminMedicalPage() {
                         <UserRound size={28} />
                       </div>
                       <span className="bg-cyan-500/20 text-cyan-400 px-4 py-2 rounded-full text-sm font-semibold">
-                        Medical
+                        Medical Staff
                       </span>
                     </div>
 
@@ -70,25 +63,11 @@ export default function AdminMedicalPage() {
                     <h2 className="text-2xl font-bold mb-3">{user.name}</h2>
 
                     {/* EMAIL */}
-                    <div className="flex items-center gap-3 text-gray-400 mb-6">
+                    <div className="flex items-center gap-3 text-gray-400 mb-2">
                       <Mail size={18} />
                       <p>{user.email}</p>
                     </div>
                   </div>
-
-                  {/* ========================================================== */}
-                  {/* FITUR BARU: TOMBOL AKSES KONSULTASI                       */}
-                  {/* ========================================================== */}
-                  <div className="border-t border-gray-800/80 pt-4 mt-auto">
-                    <button
-                      onClick={() => handleConsultation(user.id)}
-                      className="w-full bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/10 cursor-pointer text-sm sm:text-base"
-                    >
-                      <MessageSquare size={18} />
-                      Consult Now
-                    </button>
-                  </div>
-                  {/* ========================================================== */}
 
                 </div>
               ))}
