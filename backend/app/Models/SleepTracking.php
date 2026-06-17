@@ -8,6 +8,7 @@ class SleepTracking extends Model
 {
     protected $fillable = [
         'user_id',
+        'sleep_date', 
         'sleep_time',
         'wake_time',
         'sleep_duration',
