@@ -13,70 +13,66 @@ class SleepTrackingController extends Controller
 {
     public function index()
     {
-        $sleep = SleepTracking::where('user_id', Auth::id())->latest()->get();
+        
+        $sleep = SleepTracking::where('user_id', Auth::id())->latest('sleep_date')->get();
         return response()->json($sleep);
     }
 
     public function store(Request $request)
-{
-    // 1. Validasi input standar
-    $validator = Validator::make($request->all(), [
-        'sleep_time' => 'required',
-        'wake_time' => 'required',
-        'sleep_quality' => 'required|string',
-        'notes' => 'nullable|string'
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
-
-    try {
-        // 2. Bersihkan string waktu dari frontend (buang detik :00 jika ada)
-        // Kita hanya mengambil 5 karakter awal (contoh: "09:09:00" menjadi "09:09")
-        $cleanSleep = substr($request->sleep_time, 0, 5);
-        $cleanWake = substr($request->wake_time, 0, 5);
-
-        // 3. Biarkan Carbon membaca format jam:menit secara aman
-        $sleepTime = Carbon::createFromFormat('H:i', $cleanSleep);
-        $wakeTime = Carbon::createFromFormat('H:i', $cleanWake);
-
-        // Jika waktu bangun melewati tengah malam
-        if ($wakeTime->lessThan($sleepTime)) {
-            $wakeTime->addDay();
-        }
-
-        // 4. Hitung durasi secara akurat di backend
-        $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
-
-        // 5. Simpan ke database dengan memaksakan format standar database yang paling aman
-        $sleep = SleepTracking::create([
-            'user_id'        => Auth::id(),
-            // Jika kolom di database Anda bertipe DATETIME, gunakan ->format('Y-m-d H:i:s')
-            // Jika kolom di database Anda bertipe TIME, gunakan ->format('H:i:s')
-            // Di bawah ini kita buat fleksibel untuk mendukung tipe DATETIME database Anda:
-            'sleep_time'     => $sleepTime->format('Y-m-d H:i:s'),
-            'wake_time'      => $wakeTime->format('Y-m-d H:i:s'),
-            'sleep_duration' => round($duration, 2),
-            'sleep_quality'  => strtolower(trim($request->sleep_quality)), // hapus spasi tak terlihat
-            'notes'          => $request->notes,
+    {
+        
+        $validator = Validator::make($request->all(), [
+            'sleep_date'    => 'required|date_format:Y-m-d',
+            'sleep_time'    => 'required',
+            'wake_time'     => 'required',
+            'sleep_quality' => 'required|string',
+            'notes'         => 'nullable|string'
         ]);
 
-        return response()->json([
-            'message' => 'Data tidur berhasil disimpan',
-            'data' => $sleep
-        ], 201);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-    } catch (\Exception $e) {
-        // JIKA TETAP ERROR, KITA BONGKAR ERORNYA DI SINI
-        return response()->json([
-            'message' => 'Terjadi kesalahan pada database server',
-            'error_pasti' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ], 500);
+        try {
+            // Bersihkan string waktu dari frontend (buang detik jika ada)
+            $cleanSleep = substr($request->sleep_time, 0, 5);
+            $cleanWake = substr($request->wake_time, 0, 5);
+
+            // Gabungkan tanggal dengan jam agar kalkulasi durasi Carbon akurat (terutama jika lewat tengah malam)
+            $sleepTime = Carbon::createFromFormat('Y-m-d H:i', $request->sleep_date . ' ' . $cleanSleep);
+            $wakeTime = Carbon::createFromFormat('Y-m-d H:i', $request->sleep_date . ' ' . $cleanWake);
+
+            // Jika waktu bangun melewati tengah malam (misal tidur jam 22:00, bangun jam 05:00)
+            if ($wakeTime->lessThan($sleepTime)) {
+                $wakeTime->addDay();
+            }
+
+            // Hitung durasi jam tidur secara akurat
+            $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
+
+            // Simpan ke database MySQL Railway
+            $sleep = SleepTracking::create([
+                'user_id'        => Auth::id(),
+                'sleep_date'     => $request->sleep_date, // Menyimpan Tanggal, Bulan, Tahun
+                'sleep_time'     => $sleepTime->format('H:i:s'), // Sesuai tipe data TIME di migration
+                'wake_time'      => $wakeTime->format('H:i:s'),  // Sesuai tipe data TIME di migration
+                'sleep_duration' => round($duration, 2),
+                'sleep_quality'  => strtolower(trim($request->sleep_quality)),
+                'notes'          => $request->notes,
+            ]);
+
+            return response()->json([
+                'message' => 'Data tidur berhasil disimpan',
+                'data' => $sleep
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan pada database server',
+                'error_pasti' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     public function show($id)
     {
@@ -89,10 +85,11 @@ class SleepTrackingController extends Controller
         $sleep = SleepTracking::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'sleep_time' => 'required',
-            'wake_time' => 'required',
+            'sleep_date'    => 'required|date_format:Y-m-d',
+            'sleep_time'    => 'required',
+            'wake_time'     => 'required',
             'sleep_quality' => 'required|string',
-            'notes' => 'nullable|string'
+            'notes'         => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -100,9 +97,11 @@ class SleepTrackingController extends Controller
         }
 
         try {
-            // Menggunakan Carbon::parse() agar aman dari crash format
-            $sleepTime = Carbon::parse($request->sleep_time);
-            $wakeTime = Carbon::parse($request->wake_time);
+            $cleanSleep = substr($request->sleep_time, 0, 5);
+            $cleanWake = substr($request->wake_time, 0, 5);
+
+            $sleepTime = Carbon::createFromFormat('Y-m-d H:i', $request->sleep_date . ' ' . $cleanSleep);
+            $wakeTime = Carbon::createFromFormat('Y-m-d H:i', $request->sleep_date . ' ' . $cleanWake);
 
             if ($wakeTime->lessThan($sleepTime)) {
                 $wakeTime->addDay();
@@ -111,11 +110,12 @@ class SleepTrackingController extends Controller
             $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
 
             $sleep->update([
-                'sleep_time' => $sleepTime->format('H:i:s'),
-                'wake_time' => $wakeTime->format('H:i:s'),
+                'sleep_date'     => $request->sleep_date,
+                'sleep_time'     => $sleepTime->format('H:i:s'), // Format TIME
+                'wake_time'      => $wakeTime->format('H:i:s'),  // Format TIME
                 'sleep_duration' => round($duration, 2),
-                'sleep_quality' => strtolower($request->sleep_quality),
-                'notes' => $request->notes,
+                'sleep_quality'  => strtolower(trim($request->sleep_quality)),
+                'notes'          => $request->notes,
             ]);
 
             return response()->json([

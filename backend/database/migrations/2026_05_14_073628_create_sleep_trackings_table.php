@@ -16,8 +16,10 @@ return new class extends Migration
                 ->constrained()
                 ->onDelete('cascade');
 
-            $table->time('sleep_time'); // Mengubah dari datetime menjadi time
-            $table->time('wake_time');  // Mengubah dari datetime menjadi time
+            $table->date('sleep_date'); 
+
+            $table->time('sleep_time'); 
+            $table->time('wake_time');  
 
             $table->decimal('sleep_duration', 5, 2);
 
