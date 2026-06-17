@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class DailyTarget extends Model
 {
+    
     protected $fillable = [
         'user_id',
         'step_target',
         'calorie_target',
         'sleep_target',
-        'water_target',
         'target_date'
     ];
 

@@ -23,41 +23,40 @@ class DailyTargetController extends Controller
 
     public function store(Request $request)
     {
+        // Menyimpan target tanpa water_target
         $target = DailyTarget::create([
-            'user_id' => Auth::id(),
-            'step_target' => $request->step_target,
+            'user_id'        => Auth::id(),
+            'step_target'    => $request->step_target,
             'calorie_target' => $request->calorie_target,
-            'sleep_target' => $request->sleep_target,
-            'water_target' => $request->water_target,
-            'target_date' => $request->target_date,
+            'sleep_target'   => $request->sleep_target,
+            'target_date'    => $request->target_date,
         ]);
 
         return response()->json([
             'message' => 'Target harian berhasil dibuat',
-            'data' => $target
+            'data'    => $target
         ]);
     }
 
     public function destroy($id)
-{
-    $target = DailyTarget::where(
-        'user_id',
-        Auth::id()
-    )->find($id);
+    {
+        $target = DailyTarget::where(
+            'user_id',
+            Auth::id()
+        )->find($id);
 
-    if (!$target) {
+        if (!$target) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+
+        $target->delete();
 
         return response()->json([
-            'message' => 'Data tidak ditemukan'
-        ], 404);
+            'message' => 'Data berhasil dihapus'
+        ]);
     }
-
-    $target->delete();
-
-    return response()->json([
-        'message' => 'Data berhasil dihapus'
-    ]);
-}
 
     public function progress()
     {
@@ -87,35 +86,23 @@ class DailyTargetController extends Controller
         )->whereDate('activity_date', $today)
          ->sum('calories_burned');
 
+        // 💡 PERBAIKAN LOGIKA: Sekarang menghitung durasi berdasarkan kolom 'sleep_date' bertipe DATE yang baru saja kita buat tadi agar sinkron
         $sleep = SleepTracking::where(
             'user_id',
             Auth::id()
-        )->whereDate('created_at', $today)
+        )->whereDate('sleep_date', $today)
          ->sum('sleep_duration');
 
         return response()->json([
+            'step_progress' => $target->step_target > 0 ? round(($steps / $target->step_target) * 100, 2) : 0,
+            'calorie_progress' => $target->calorie_target > 0 ? round(($calories / $target->calorie_target) * 100, 2) : 0,
+            'sleep_progress' => $target->sleep_target > 0 ? round(($sleep / $target->sleep_target) * 100, 2) : 0,
 
-            'step_progress' => round(
-                ($steps / $target->step_target) * 100,
-                2
-            ),
-
-            'calorie_progress' => round(
-                ($calories / $target->calorie_target) * 100,
-                2
-            ),
-
-            'sleep_progress' => round(
-                ($sleep / $target->sleep_target) * 100,
-                2
-            ),
-
-            'steps_today' => $steps,
+            'steps_today'    => $steps,
             'calories_today' => $calories,
-            'sleep_today' => $sleep,
+            'sleep_today'    => $sleep,
 
             'target' => $target
         ]);
     }
 }
-

@@ -9,23 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('daily_targets', function (Blueprint $table) {
-
             $table->id();
-
+            
             $table->foreignId('user_id')
                 ->constrained()
                 ->onDelete('cascade');
-
+                
             $table->integer('step_target');
-
             $table->integer('calorie_target');
-
-            $table->decimal('sleep_target', 4, 2);
-
-            $table->integer('water_target');
-
+            $table->decimal('sleep_target', 4, 2); 
             $table->date('target_date');
-
             $table->timestamps();
         });
     }
