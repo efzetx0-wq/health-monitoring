@@ -22,101 +22,64 @@ export default function DailyTargetsPage() {
 
   const [formData, setFormData] =
     useState({
-
       step_target: "",
-
       calorie_target: "",
-
       sleep_target: "",
-
-      water_target: "",
-
       target_date: ""
     });
 
   useEffect(() => {
-
     loadTargets();
-
   }, []);
 
   const loadTargets = async () => {
-
     try {
-
       const data =
         await getDailyTargets();
-
       setTargets(data);
-
     } catch (error) {
-
       console.log(error);
     }
   };
 
   const handleChange = (e) => {
-
     setFormData({
       ...formData,
-      [e.target.name]:
-      e.target.value
+      [e.target.name]: e.target.value
     });
   };
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
-
     try {
       console.log(formData);
-      await createDailyTarget(
-        formData
-      );
+      await createDailyTarget(formData);
 
       setMessage(
         "Daily target berhasil disimpan"
       );
 
-      // PERBAIKAN BUG: Mengembalikan kunci objek state reset yang benar sesuai inisialisasi awal
       setFormData({
-
         step_target: "",
-
         calorie_target: "",
-
         sleep_target: "",
-
-        water_target: "",
-
         target_date: ""
       });
 
       loadTargets();
-
     } catch (error) {
-
       console.log(error);
     }
   };
 
   const handleDelete = async (id) => {
-
     try {
-
       console.log(id);
-
       await deleteDailyTarget(id);
-
       loadTargets();
-
     } catch (error) {
-
       console.log(error);
-
-      console.log(
-        error.response?.data
-      );
+      console.log(error.response?.data);
     }
   };
 
@@ -124,9 +87,7 @@ export default function DailyTargetsPage() {
     current,
     target
   ) => {
-
     if (!target) return 0;
-
     return Math.min(
       Number(((current / target) * 100).toFixed(0)),
       100
@@ -134,29 +95,21 @@ export default function DailyTargetsPage() {
   };
 
   return (
-
     <MainLayout>
-
-      {/* MODIFIKASI: Padding bersahabat di mobile p-4 dan diberi ruang pb-24 agar tidak menabrak bar navigasi bawah */}
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
-
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">
           Daily Targets
         </h1>
 
         {/* Form */}
         <div className="bg-white p-5 sm:p-6 rounded-2xl shadow mb-8 border border-gray-50">
-
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
             Set Daily Target
           </h2>
 
           {message && (
-
             <div className="bg-green-100 text-green-700 p-3 rounded-xl mb-4 text-sm font-medium">
-
               {message}
-
             </div>
           )}
 
@@ -164,7 +117,6 @@ export default function DailyTargetsPage() {
             onSubmit={handleSubmit}
             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
-
             {/* Target Steps */}
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Step Target</label>
@@ -192,7 +144,7 @@ export default function DailyTargetsPage() {
             </div>
 
             {/* Target Sleep */}
-            <div className="flex flex-col">
+            <div className="flex flex-col sm:col-span-2">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Sleep Target (hours)</label>
               <input
                 type="number"
@@ -200,19 +152,6 @@ export default function DailyTargetsPage() {
                 name="sleep_target"
                 placeholder="e.g. 8"
                 value={formData.sleep_target}
-                onChange={handleChange}
-                className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
-              />
-            </div>
-
-            {/* Target Water */}
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Water Target (ml)</label>
-              <input
-                type="number"
-                name="water_target"
-                placeholder="e.g. 2000"
-                value={formData.water_target}
                 onChange={handleChange}
                 className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full"
               />
@@ -235,9 +174,7 @@ export default function DailyTargetsPage() {
             >
               Save Daily Target
             </button>
-
           </form>
-
         </div>
 
         {/* History Container Title */}
@@ -245,26 +182,21 @@ export default function DailyTargetsPage() {
 
         {/* Progress Cards */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
-
           {targets.length === 0 ? (
             <p className="text-gray-400 text-center text-sm bg-white py-8 rounded-2xl shadow border border-gray-100">
               Belum ada target harian yang diatur.
             </p>
           ) : (
             targets.map((target) => {
-
-              // Catatan logis: Di masa depan ganti value pertama dengan pencapaian aktual (current value) dari user
               const stepProgress = calculateProgress(target.step_target, target.step_target);
               const calorieProgress = calculateProgress(target.calorie_target, target.calorie_target);
               const sleepProgress = calculateProgress(target.sleep_target, target.sleep_target);
 
               return (
-
                 <div
                   key={target.id}
                   className="bg-white p-5 sm:p-6 rounded-2xl shadow border border-gray-100 flex flex-col justify-between gap-4"
                 >
-                  
                   {/* Bagian Atas Kartu: Tanggal Target & Tombol Delete */}
                   <div className="flex justify-between items-center border-b border-gray-50 pb-3">
                     <div>
@@ -322,33 +254,14 @@ export default function DailyTargetsPage() {
                         />
                       </div>
                     </div>
-
-                    {/* Water Goal */}
-                    {target.water_target && (
-                      <div>
-                        <div className="flex justify-between mb-1.5 text-xs sm:text-sm">
-                          <span className="font-semibold text-gray-700">Water Intake Goal</span>
-                          <span className="font-bold text-sky-500">{target.water_target} ml</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-3">
-                          <div
-                            className="bg-sky-400 h-3 rounded-full"
-                            style={{ width: `100%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                 </div>
-              )
+              );
             })
           )}
-
         </div>
-
       </div>
-
     </MainLayout>
-  )
+  );
 }
