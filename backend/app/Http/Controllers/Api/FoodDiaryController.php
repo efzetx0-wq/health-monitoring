@@ -5,78 +5,93 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\FoodDiary;
-use App\Models\Food;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class FoodDiaryController extends Controller
 {
     public function index()
     {
-        $diaries = FoodDiary::with('food')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
-
+        $diaries = FoodDiary::where('user_id', Auth::id())->latest()->get();
         return response()->json($diaries);
     }
 
-   public function store(Request $request)
-{
-    $request->validate([
-        'food_id' => 'required',
-        'quantity' => 'required|numeric|min:0.1',
-        'consumed_at' => 'required',
-        'notes' => 'nullable|string',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'food_name' => 'required|string',
+            'portion' => 'required|string',
+            'log_date' => 'required|date',
+        ]);
 
-    try {
-        // 1. BERSIHKAN HURUF 'T' DARI TANGGAL REACT
-        // Mengubah "2026-06-05T21:09" menjadi "2026-06-05 21:09:00" yang ramah SQL
-        $cleanDateTime = str_replace('T', ' ', $request->consumed_at);
-        $finalDateTime = \Carbon\Carbon::parse($cleanDateTime)->format('Y-m-d H:i:s');
+        $food = $request->food_name;
+        $portion = $request->portion;
 
-        // 2. AMBIL KALORI ASLI DAN HITUNG TOTALNYA
-        $baseCalories = (float) $request->total_calories;
-        $totalCalories = $baseCalories * (float) $request->quantity;
+        // --- PROSES AI GROQ ---
+        $apiKey = env('GROQ_API_KEY');
+        
+        // Buat prompt agar AI mengembalikan format JSON yang kaku/pasti
+        $prompt = "Bertindaklah sebagai ahli gizi digital terpercaya. Seseorang memakan makanan berikut:\n" .
+                  "Nama Makanan: {$food}\n" .
+                  "Porsi: {$portion}\n\n" .
+                  "Hitung estimasi total kalorinya (hanya angka integer) dan berikan 1 kalimat saran/rekomendasi singkat berbahasa Indonesia agar makanan ini menjadi lebih sehat atau alternatif pengganti yang mirip namun lebih bernutrisi.\n\n" .
+                  "Anda WAJIB merespon dalam format JSON mentah seperti ini tanpa teks pembuka/penutup apapun:\n" .
+                  "{\n" .
+                  "  \"calories\": 350,\n" .
+                  "  \"recommendation\": \"Saran dari AI disini...\"\n" .
+                  "}";
 
-        // 3. SIMPAN KE DATABASE DENGAN TRY-CATCH AMAN
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.groq.com/openai/v1/chat/completions', [
+                'model' => 'llama3-8b-8192', // Model super cepat milik Groq
+                'messages' => [
+                    ['role' => 'user', 'content' => $prompt]
+                ],
+                'temperature' => 0.2, // Nilai rendah agar AI konsisten patuh pada format JSON
+            ]);
+
+            if ($response->successful()) {
+                $aiResult = json_decode($response->json()['choices'][0]['message']['content'], true);
+                
+                // Ambil data hasil parsing AI (jika gagal, berikan nilai default)
+                $calories = $aiResult['calories'] ?? 200; 
+                $recommendation = $aiResult['recommendation'] ?? 'Tetap jaga porsi makan dan imbangi dengan sayuran.';
+            } else {
+                $calories = 250; // fallback jika API limit / error
+                $recommendation = 'Gagal terhubung ke AI. Cobalah mengonsumsi lebih banyak serat.';
+            }
+        } catch (\Exception $e) {
+            $calories = 250;
+            $recommendation = 'Fitur AI sedang sibuk. Tetap batasi makanan berminyak.';
+        }
+        // --- END PROSES AI ---
+
+        // Simpan ke Database
         $diary = FoodDiary::create([
             'user_id' => Auth::id(),
-            
-            // TIPS ANTI-CRASH: Jika database Railway Anda menolak angka 1 karena tabel foods kosong,
-            // kita bisa memaksa menyimpan ID 1 secara mentah atau set null jika diizinkan.
-            // Di sini kita masukkan sesuai kiriman React Anda:
-            'food_id' => $request->food_id,
-            
-            'quantity' => $request->quantity,
-            'total_calories' => $totalCalories,
-            'consumed_at' => $finalDateTime,
-            'notes' => $request->notes,
+            'food_name' => $food,
+            'portion' => $portion,
+            'calories' => $calories,
+            'ai_recommendation' => $recommendation,
+            'log_date' => $request->log_date,
         ]);
 
         return response()->json([
-            'message' => 'Food diary berhasil ditambahkan',
+            'message' => 'Catatan makanan berhasil dianalisis oleh AI dan disimpan!',
             'data' => $diary
-        ], 201);
+        ]);
+    }
 
-    } catch (\Exception $e) {
-        // JIKA DATABASE RAILWAY TETAP MENOLAK, KITA BONGKAR ALASANNYA DI SINI
-        return response()->json([
-            'message' => 'Database Railway Menolak Menyimpan!',
-            'Penyebab_Error_Asli' => $e->getMessage(),
-            'Solusi_Lanjutan' => 'Jika tertulis "Foreign Key Constraint", Anda wajib mengisi tabel foods atau mengubah kolom food_id di migration menjadi nullable()'
-        ], 500);
+    public function destroy($id)
+    {
+        $diary = FoodDiary::where('user_id', Auth::id())->find($id);
+        if (!$diary) {
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+        $diary->delete();
+        return response()->json(['message' => 'Data berhasil dihapus']);
     }
 }
-    public function destroy($id)
-{
-    $foodDiary = FoodDiary::findOrFail($id);
-
-    $foodDiary->delete();
-
-    return response()->json([
-        'message' => 'Food diary berhasil dihapus'
-    ]);
-}
-}
-
