@@ -5,11 +5,11 @@ import { getFoodDiaries, createFoodDiary, deleteFoodDiary } from "../services/fo
 export default function FoodDiaryPage() {
   const [foods, setFoods] = useState([]);
   const [message, setMessage] = useState("");
-  const [loadingAi, setLoadingAi] = useState(false); // State loading saat Groq AI bekerja
+  const [loadingAi, setLoadingAi] = useState(false);
 
   const [formData, setFormData] = useState({
-    food_name: "", // Mengganti food_id menjadi teks bebas
-    portion: "",   // Mengganti quantity menjadi porsi teks bebas
+    food_name: "", 
+    portion: "",   
     consumed_at: "",
     notes: ""
   });
@@ -18,7 +18,6 @@ export default function FoodDiaryPage() {
     loadFoods();
   }, []);
 
-  // LOAD DATA
   const loadFoods = async () => {
     try {
       const data = await getFoodDiaries();
@@ -28,7 +27,6 @@ export default function FoodDiaryPage() {
     }
   };
 
-  // HANDLE INPUT
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -72,7 +70,6 @@ export default function FoodDiaryPage() {
     }
   };
 
-  // DELETE
   const handleDelete = async (id) => {
     try {
       await deleteFoodDiary(id);
@@ -82,16 +79,14 @@ export default function FoodDiaryPage() {
     }
   };
 
-  // TOTAL CALORIES KOLEKTIF
   const totalCalories = foods.reduce(
     (total, item) => total + Number(item.calories || 0),
     0
   );
 
-  // Fungsi pembantu untuk merapikan tampilan tanggal agar enak dibaca
   const formatTanggal = (dateString) => {
     if (!dateString) return "-";
-    const date = new Date(dateString.replace(' ', 'T')); // Handle format MySQL
+    const date = new Date(dateString.replace(' ', 'T'));
     return date.toLocaleString("id-ID", {
       year: "numeric",
       month: "short",
@@ -132,7 +127,6 @@ export default function FoodDiaryPage() {
           )}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* FOOD NAME TEXT INPUT */}
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Nama Makanan (Ketik Bebas)</label>
               <input
@@ -146,7 +140,6 @@ export default function FoodDiaryPage() {
               />
             </div>
 
-            {/* PORTION TEXT INPUT */}
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Jumlah / Porsi (Ketik Bebas)</label>
               <input
@@ -160,7 +153,6 @@ export default function FoodDiaryPage() {
               />
             </div>
 
-            {/* CALORIES (AUTO BY AI INDICATOR) */}
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Total Kalori</label>
               <input
@@ -171,7 +163,6 @@ export default function FoodDiaryPage() {
               />
             </div>
 
-            {/* DATE */}
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Waktu Konsumsi</label>
               <input
@@ -184,7 +175,6 @@ export default function FoodDiaryPage() {
               />
             </div>
 
-            {/* NOTES */}
             <div className="sm:col-span-2 flex flex-col">
               <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Catatan Tambahan</label>
               <textarea
@@ -197,11 +187,11 @@ export default function FoodDiaryPage() {
               />
             </div>
 
-            {/* BUTTON */}
+            {/* 💡 SINKRONISASI WARNA TOMBOL: Diubah ke Biru (bg-blue-600) agar serasi */}
             <button
               disabled={loadingAi}
               className={`text-white p-3 rounded-xl sm:col-span-2 font-semibold text-sm sm:text-base shadow-md transition ${
-                loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-50"
+                loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-50"
               }`}
             >
               {loadingAi ? "🔄 Groq AI Sedang Menganalisis & Menghitung Kalori..." : "Hitung Kalori & Simpan via AI"}
@@ -212,7 +202,7 @@ export default function FoodDiaryPage() {
         {/* HISTORY CONTAINER */}
         <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History & AI Recommendations</h2>
 
-        {/* 1. SEGMEN MOBILE LIST CARD */}
+        {/* 1. VIEW MOBILE */}
         <div className="block sm:hidden space-y-4">
           {foods.length === 0 ? (
             <p className="text-gray-400 text-center text-sm bg-white py-6 rounded-2xl shadow border border-gray-100">
@@ -224,7 +214,6 @@ export default function FoodDiaryPage() {
                 <div className="flex justify-between items-start border-b border-gray-50 pb-2">
                   <div>
                     <h3 className="font-bold text-gray-800 text-base capitalize">{food.food_name}</h3>
-                    {/* 💡 SINKRONISASI: Mengubah food.log_date menjadi food.consumed_at */}
                     <span className="text-xs text-gray-400">{formatTanggal(food.consumed_at || food.created_at)}</span>
                   </div>
                   <button
@@ -246,13 +235,13 @@ export default function FoodDiaryPage() {
                   </div>
                 </div>
 
-                {/* REKOMENDASI AI MOBILE */}
                 <div className="bg-emerald-50/70 border border-emerald-100 p-3 rounded-xl text-xs text-emerald-900 leading-relaxed italic">
                   <span className="font-bold text-emerald-800 block not-italic mb-1">💡 REKOMENDASI SEHAT AI:</span>
                   "{food.ai_recommendation || "Tetap jaga porsi makan dan imbangi dengan olahraga teratur."}"
                 </div>
 
-                {food.notes && (
+                {/* Notes Tampilan Mobile */}
+                {food.notes && food.notes !== '-' && (
                   <div className="text-xs text-gray-500 border-t border-gray-50 pt-2">
                     <span className="font-semibold text-gray-700">Notes:</span> {food.notes}
                   </div>
@@ -262,7 +251,7 @@ export default function FoodDiaryPage() {
           )}
         </div>
 
-        {/* 2. SEGMEN LAPTOP/DESKTOP TABLE */}
+        {/* 2. VIEW LAPTOP/DESKTOP TABLE */}
         <div className="hidden sm:block bg-white text-gray-800 rounded-2xl shadow overflow-hidden border border-gray-100">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
@@ -271,6 +260,8 @@ export default function FoodDiaryPage() {
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Food</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Portion</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Calories</th>
+                {/* 💡 PERBAIKAN: Menambahkan Header Notes */}
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">AI Recommendation</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
@@ -278,16 +269,19 @@ export default function FoodDiaryPage() {
             <tbody>
               {foods.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-6 text-center text-gray-400 text-sm">No food diary found</td>
+                  <td colSpan="7" className="p-6 text-center text-gray-400 text-sm">No food diary found</td>
                 </tr>
               ) : (
                 foods.map((food) => (
                   <tr key={food.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-                    {/* 💡 TAMBAHAN: Kolom Tanggal di Desktop agar informatif */}
                     <td className="p-4 text-xs text-gray-400 whitespace-nowrap">{formatTanggal(food.consumed_at || food.created_at)}</td>
                     <td className="p-4 text-sm font-semibold text-gray-800 capitalize">{food.food_name}</td>
                     <td className="p-4 text-sm text-gray-600">{food.portion}</td>
                     <td className="p-4 text-sm font-bold text-emerald-600">{food.calories} kcal</td>
+                    {/* 💡 PERBAIKAN: Menampilkan isi data Notes */}
+                    <td className="p-4 text-sm text-gray-500 truncate" style={{ maxWidth: '150px' }} title={food.notes}>
+                    {food.notes && food.notes !== '-' ? food.notes : <span className="text-gray-300 italic">Tidak ada</span>}
+                  </td>
                     <td className="p-4 text-xs text-emerald-800 max-w-sm italic bg-emerald-50/20">
                       {food.ai_recommendation || "Imbangi makanan dengan tambahan serat murni."}
                     </td>
