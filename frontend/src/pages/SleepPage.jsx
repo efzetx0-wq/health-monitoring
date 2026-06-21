@@ -29,23 +29,33 @@ export default function SleepPage() {
     }
   };
 
-  const calculateDuration = (sleepTime, wakeTime) => {
+  // KALKULASI DURASI FORM FORMAT JAM & MENIT
+  const calculateDurationText = (sleepTime, wakeTime) => {
     if (!sleepTime || !wakeTime) return "";
     const start = new Date(`2026-01-01 ${sleepTime}`);
     const end = new Date(`2026-01-01 ${wakeTime}`);
     
     let diffMs = end - start;
     if (diffMs < 0) {
-      diffMs += 24 * 60 * 60 * 1000; // Tambah 24 jam dalam milidetik
+      diffMs += 24 * 60 * 60 * 1000;
     }
     
     const totalMinutes = Math.floor(diffMs / (1000 * 60));
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     
-    // Konversi ke format jam desimal agar sesuai backend
-    const decimalHours = (totalMinutes / 60).toFixed(2);
-    return decimalHours;
+    if (minutes === 0) return `${hours} jam`;
+    return `${hours} jam ${minutes} menit`;
+  };
+
+  // Helper untuk mengubah angka desimal database (misal 7.5) menjadi teks "7 jam 30 menit"
+  const formatDecimalToText = (decimalValue) => {
+    const num = parseFloat(decimalValue);
+    if (isNaN(num) || num === 0) return "-";
+    const hours = Math.floor(num);
+    const minutes = Math.round((num - hours) * 60);
+    if (minutes === 0) return `${hours} jam`;
+    return `${hours} jam ${minutes} menit`;
   };
 
   // HANDLE INPUT
@@ -57,11 +67,10 @@ export default function SleepPage() {
     };
 
     if (name === "sleep_time" || name === "wake_time") {
-      updatedData.sleep_duration = calculateDuration(
+      updatedData.sleep_duration = calculateDurationText(
         name === "sleep_time" ? value : updatedData.sleep_time,
         name === "wake_time" ? value : updatedData.wake_time
       );
-      // Status kualitas dikosongkan karena akan ditulis otomatis oleh AI setelah disave
       updatedData.sleep_quality = "Menghitung via AI...";
     }
 
@@ -115,22 +124,31 @@ export default function SleepPage() {
     }
   };
 
-  // AVERAGE
-  const averageSleep =
-    sleepData.length > 0
-      ? (
-          sleepData.reduce((total, item) => total + Number(item.sleep_duration || 0), 0) / sleepData.length
-        ).toFixed(1)
-      : 0;
+  // 💡 PERBAIKAN: Menghitung rata-rata tidur lalu langsung mengubah desimalnya ke format "X jam Y menit"
+  const getAverageSleepText = () => {
+    if (sleepData.length === 0) return "0 jam";
+    
+    // Hitung total jam desimal dari semua trackings
+    const totalDecimalHours = sleepData.reduce((total, item) => total + Number(item.sleep_duration || 0), 0);
+    const averageDecimal = totalDecimalHours / sleepData.length;
+    
+    // Konversi hasil rata-rata desimal ke Jam dan Menit
+    return formatDecimalToText(averageDecimal);
+  };
 
-  // Kamus Penerjemah Kualitas ke Bahasa Indonesia & Style Tailwind v4 Aman
+  // LOGIKA TERJEMAHAN KUALITAS MEDIS INDONESIA
   const getIndonesianQuality = (quality) => {
     switch (quality?.toLowerCase()) {
-      case "excellent": return { teks: "Sangat Baik", kelas: "bg-emerald-50 text-emerald-600" };
-      case "good": return { teks: "Baik", kelas: "bg-blue-50 text-blue-600" };
-      case "fair": return { teks: "Kurang / Berlebih", kelas: "bg-amber-50 text-amber-600" };
-      case "poor": return { teks: "Sangat Buruk", kelas: "bg-rose-50 text-rose-600" };
-      default: return { teks: "Mengukur...", kelas: "bg-gray-50 text-gray-600" };
+      case "excellent": 
+        return { teks: "Sangat Baik", kelas: "bg-emerald-50 text-emerald-600" };
+      case "good": 
+        return { teks: "Baik", kelas: "bg-blue-50 text-blue-600" };
+      case "fair": 
+        return { teks: "Berlebihan", kelas: "bg-purple-50 text-purple-600" };
+      case "poor": 
+        return { teks: "Buruk", kelas: "bg-rose-50 text-rose-600" };
+      default: 
+        return { teks: "Mengukur...", kelas: "bg-gray-50 text-gray-600" };
     }
   };
 
@@ -143,7 +161,8 @@ export default function SleepPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
           <div className="bg-white text-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-50">
             <h2 className="text-gray-500 text-sm sm:text-base font-medium">Average Sleep</h2>
-            <p className="text-2xl sm:text-3xl font-bold mt-1 text-gray-900">{averageSleep} Hours</p>
+            {/* 💡 SEKARANG MENAMPILKAN FORMAT JAM & MENIT (Contoh: "7 jam 30 menit") */}
+            <p className="text-xl sm:text-2xl font-bold mt-1 text-gray-900">{getAverageSleepText()}</p>
           </div>
 
           <div className="bg-white text-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-50">
@@ -210,12 +229,12 @@ export default function SleepPage() {
               />
             </div>
 
-            {/* DURATION */}
+            {/* DURATION TEXT */}
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-600">Sleep Duration</label>
               <input
                 type="text"
-                value={formData.sleep_duration ? `${formData.sleep_duration} Hours` : ""}
+                value={formData.sleep_duration || ""}
                 readOnly
                 placeholder="Auto calculated"
                 className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-400 font-semibold focus:outline-none"
@@ -288,7 +307,7 @@ export default function SleepPage() {
 
                   <div className="flex gap-2 items-center border-t border-b border-gray-50 py-2">
                     <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-bold">
-                      {item.sleep_duration} h
+                      {formatDecimalToText(item.sleep_duration)}
                     </span>
                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${qualityInfo.kelas}`}>
                       {qualityInfo.teks}
@@ -341,7 +360,7 @@ export default function SleepPage() {
                       <td className="p-4 text-sm font-bold text-gray-900">{item.sleep_date}</td>
                       <td className="p-4 text-sm font-medium text-gray-800">{item.sleep_time}</td>
                       <td className="p-4 text-sm text-gray-600">{item.wake_time}</td>
-                      <td className="p-4 text-sm font-bold text-gray-700">{item.sleep_duration} h</td>
+                      <td className="p-4 text-sm font-bold text-gray-700">{formatDecimalToText(item.sleep_duration)}</td>
                       <td className="p-4 text-sm">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${qualityInfo.kelas}`}>
                           {qualityInfo.teks}

@@ -21,7 +21,6 @@ class SleepTrackingController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi input awal (Kualitas dikosongkan karena diisi otomatis oleh AI Groq)
         $validator = Validator::make($request->all(), [
             'sleep_date'    => 'required|date_format:Y-m-d',
             'sleep_time'    => 'required',
@@ -47,31 +46,38 @@ class SleepTrackingController extends Controller
             $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
             $durationRound = round($duration, 2);
 
-            // Pengaturan Cadangan jika AI offline (Sesuai batasan ENUM database Anda)
+            // Logika Cadangan yang ketat jika AI sedang offline
             $aiQuality = 'good';
-            if ($durationRound < 6.5) { $aiQuality = 'poor'; }
-            elseif ($durationRound > 8.5) { $aiQuality = 'fair'; }
+            if ($durationRound < 7.0) { 
+                $aiQuality = 'poor'; 
+            } elseif ($durationRound > 8.0) { 
+                $aiQuality = 'fair'; 
+            } else {
+                $aiQuality = 'excellent';
+            }
 
-            $aiRecommendation = "Durasi tidur terpantau standar. Jaga kenyamanan temperatur ruangan Anda.";
+            $aiRecommendation = "Durasi tidur terpantau dalam batas normal. Jaga ritme sirkadian Anda.";
 
-            // --- EKSEKUSI GROQ AI (MODEL CHATBOT: llama-3.1-8b-instant) ---
+            // --- PROSES SMART AI GROQ ---
             $apiKey = config('app.groq_api_key') ?? env('GROQ_API_KEY');
             if ($apiKey) {
                 try {
                     $prompt = "Kamu adalah spesialis kesehatan tidur klinis (Somnologist AI). Seseorang tidur dengan total durasi: {$durationRound} jam.\n" .
-                              "1. Tentukan kualitas tidur berdasarkan durasi tersebut. WAJIB PILIH SALAH SATU kode ini saja (tulis persis huruf kecil):\n" .
-                              "   - Pilih 'poor' jika tidur sangat kurang (di bawah 6.5 jam).\n" .
-                              "   - Pilih 'good' atau 'excellent' jika tidur sangat ideal (7 sampai 8 jam).\n" .
-                              "   - Pilih 'fair' jika tidur berlebihan (di atas 8.5 jam).\n\n" .
-                              "2. Berikan 1 kalimat saran kesehatan/evaluasi medis singkat mengapa durasi tersebut baik/kurang baik dalam Bahasa Indonesia.\n\n" .
-                              "CONTOH JAWABAN (LANGSUNG FORMAT INI TANPA BASA-BASI):\n" .
-                              "fair#Durasi tidur Anda {$durationRound} jam termasuk berlebihan. Tidur terlalu lama dapat mengacaukan ritme sirkadian dan memicu hipersomnia yang membuat tubuh lemas.";
+                              "Tugasmu menentukan kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
+                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas adalah BURUK. Maka WAJIB tulis kode: poor\n" .
+                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah BAIK / IDEAL. Maka WAJIB tulis kode antara: good atau excellent\n" .
+                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas adalah BERLEBIHAN. Maka WAJIB tulis kode: fair\n\n" .
+                              "Berikan jawaban dengan format: kode_kualitas#1 kalimat saran bahasa indonesia.\n\n" .
+                              "CONTOH JAWABAN JIKA DURASI 7.5 JAM:\n" .
+                              "excellent#Durasi tidur Anda ideal dan sangat bagus untuk pemulihan energi sel tubuh.\n\n" .
+                              "CONTOH JAWABAN JIKA DURASI 9 JAM:\n" .
+                              "fair#Durasi tidur Anda {$durationRound} jam termasuk berlebihan. Tidur terlalu lama dapat mengacaukan ritme tubuh dan memicu hipersomnia yang membuat badan lemas.";
 
                     $response = Http::withoutVerifying()->withHeaders([
                         'Authorization' => 'Bearer ' . $apiKey,
                         'Content-Type'  => 'application/json',
                     ])->post('https://api.groq.com/openai/v1/chat/completions', [
-                        'model'       => 'llama-3.1-8b-instant', // Model yang sama dengan chatbot
+                        'model'       => 'llama-3.1-8b-instant',
                         'messages'    => [['role' => 'user', 'content' => $prompt]],
                         'temperature' => 0.1,
                     ]);
@@ -99,11 +105,9 @@ class SleepTrackingController extends Controller
                 }
             }
 
-            // Gabungkan notes kustom user dengan insight AI
             $userNotes = $request->notes ?? '-';
             $finalNotes = $userNotes . " [AI]: " . $aiRecommendation;
 
-            // Simpan ke database MySQL Railway
             $sleep = SleepTracking::create([
                 'user_id'        => Auth::id(),
                 'sleep_date'     => $request->sleep_date,
@@ -163,8 +167,13 @@ class SleepTrackingController extends Controller
             $durationRound = round($duration, 2);
 
             $aiQuality = 'good';
-            if ($durationRound < 6.5) { $aiQuality = 'poor'; }
-            elseif ($durationRound > 8.5) { $aiQuality = 'fair'; }
+            if ($durationRound < 7.0) { 
+                $aiQuality = 'poor'; 
+            } elseif ($durationRound > 8.0) { 
+                $aiQuality = 'fair'; 
+            } else {
+                $aiQuality = 'excellent';
+            }
 
             $aiRecommendation = "Pola tidur diupdate. Jaga konsistensi waktu istirahat Anda.";
 
@@ -172,8 +181,10 @@ class SleepTrackingController extends Controller
             if ($apiKey) {
                 try {
                     $prompt = "Kamu adalah spesialis kesehatan tidur klinis. Seseorang tidur dengan total durasi: {$durationRound} jam.\n" .
-                              "1. Tentukan kualitas tidur, WAJIB KODE INI: poor / fair / good / excellent\n" .
-                              "2. Berikan 1 kalimat saran kesehatan singkat Bahasa Indonesia.\n\n" .
+                              "Tugasmu menentukan kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
+                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas adalah BURUK (poor)\n" .
+                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah BAIK / IDEAL (good / excellent)\n" .
+                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas adalah BERLEBIHAN (fair)\n\n" .
                               "CONTOH JAWABAN:\ngood#Durasi tidur ideal.";
 
                     $response = Http::withoutVerifying()->withHeaders([
