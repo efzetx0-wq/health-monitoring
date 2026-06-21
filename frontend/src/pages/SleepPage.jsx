@@ -146,7 +146,7 @@ export default function SleepPage() {
   return (
     <MainLayout>
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Sleep Tracking AI</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Sleep Tracking</h1>
 
         {/* SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
@@ -191,14 +191,14 @@ export default function SleepPage() {
               <textarea name="notes" value={formData.notes} onChange={handleChange} rows="3" placeholder="Optional notes" className="w-full bg-white border border-gray-200 p-3 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-blue-500" />
             </div>
             <button disabled={loadingAi} className={`text-white p-3 rounded-xl sm:col-span-2 font-semibold text-sm sm:text-base shadow-md transition ${loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-50"}`}>
-              {loadingAi ? "🔄 AI Sedang Menganalisis Kualitas Tidur..." : "Save Sleep Data & AI Analysis"}
+              {loadingAi ? "Sedang Menganalisis Kualitas Tidur..." : "Save Sleep Data"}
             </button>
           </form>
         </div>
 
-        {/* 💡 FITUR PENCARIAN TELAH DIHAPUS - HEADER KEMBALI SIMPEL */}
+        
         <div className="mb-4 px-1">
-          <h2 className="text-xl font-bold text-gray-800">History & AI Analysis</h2>
+          <h2 className="text-xl font-bold text-gray-800">History</h2>
         </div>
 
         {/* 1. SEGMEN MOBILE LIST CARD (FLEKSIBEL DI HP) */}
@@ -250,7 +250,7 @@ export default function SleepPage() {
                     </p>
                     {aiText.length > 50 && (
                       <button onClick={() => toggleExpand(item.id)} className="text-blue-600 font-bold mt-1.5 hover:underline block not-italic text-[11px] cursor-pointer">
-                        {isExpanded ? "🔄 Show Less" : "➕ Show More"}
+                        {isExpanded ? "Show Less" : "Show More"}
                       </button>
                     )}
                   </div>
@@ -269,9 +269,9 @@ export default function SleepPage() {
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Sleep Time</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Wake Time</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Duration</th>
-                <th className="p-4 text-left text-sm font-semibold text-gray-600">Quality AI</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Quality</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
-                <th className="p-4 text-left text-sm font-semibold text-gray-600 w-[35%]">AI Medical Insight</th> {/* Diberi porsi ruang yang besar */}
+                <th className="p-4 text-left text-sm font-semibold text-gray-600 w-[35%]">Medical Insight</th> {/* Diberi porsi ruang yang besar */}
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>
@@ -309,7 +309,7 @@ export default function SleepPage() {
                             onClick={() => toggleExpand(item.id)} 
                             className="text-blue-600 font-bold mt-1.5 hover:text-blue-800 block not-italic text-[10px] cursor-pointer"
                           >
-                            {isExpanded ? "🔄 Show Less" : "➕ Show More"}
+                            {isExpanded ? "Show Less" : "Show More"}
                           </button>
                         )}
                       </td>
