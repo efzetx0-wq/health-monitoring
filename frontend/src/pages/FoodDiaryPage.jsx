@@ -194,7 +194,7 @@ export default function FoodDiaryPage() {
                 loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-50"
               }`}
             >
-              {loadingAi ? "Sedang Menganalisis & Menghitung Kalori..." : "Hitung Kalori & Simpan via AI"}
+              {loadingAi ? "Sedang Menganalisis & Menghitung Kalori..." : "Hitung Kalori & Simpan"}
             </button>
           </form>
         </div>
