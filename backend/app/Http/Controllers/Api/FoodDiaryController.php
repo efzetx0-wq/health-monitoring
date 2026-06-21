@@ -11,21 +11,15 @@ use Illuminate\Support\Facades\Log;
 
 class FoodDiaryController extends Controller
 {
-    /**
-     * Menampilkan semua daftar catatan makanan milik user yang sedang login.
-     */
     public function index()
     {
         $diaries = FoodDiary::where('user_id', Auth::id())->latest()->get();
         return response()->json($diaries);
     }
 
-    /**
-     * Menyimpan catatan makanan baru dan menganalisis kalori serta rekomendasi menggunakan Groq AI.
-     */
     public function store(Request $request)
     {
-        // 1. Validasi input dari frontend React
+        // 1. Validasi Input Frontend
         $request->validate([
             'food_name'   => 'required|string',
             'portion'     => 'required|string',
@@ -36,7 +30,7 @@ class FoodDiaryController extends Controller
         $food = $request->food_name;
         $portion = $request->portion;
 
-        // 2. Normalisasi format tanggal untuk standar database MySQL (Y-m-d H:i:s)
+        // 2. Rapikan Tanggal untuk MySQL
         $rawDate = $request->consumed_at;
         $cleanDateTime = str_replace('T', ' ', $rawDate); 
         if (strlen($cleanDateTime) == 16) {
@@ -45,59 +39,71 @@ class FoodDiaryController extends Controller
 
         $apiKey = env('GROQ_API_KEY');
         
-        // Nilai cadangan (Fallback) jika seandainya API AI limit atau down
+        // Nilai Cadangan Absolut jika Groq benar-benar mati konyol
         $calories = 250; 
         $recommendation = "Imbangi makanan Anda dengan air putih dan serat secukupnya.";
 
-        // 3. Proses Analisis Menggunakan Groq AI (Metode Parsing Teks Kuat)
+        // 3. Eksekusi Groq AI dengan Pengaman Berlapis
         if ($apiKey) {
             try {
-                // Prompt dibuat sangat ketat agar AI mengembalikan teks sederhana dipisah pagar (#)
-                $prompt = "Kamu adalah sistem pakar ahli gizi (Nutritionist AI) Indonesia. " .
-                          "Hitung estimasi total kalori (hanya angka integer bulat) dan berikan 1 kalimat saran kesehatan singkat yang relevan sesuai makanan ini:\n" .
-                          "Nama Makanan: {$food}\n" .
-                          "Porsi: {$portion}\n\n" .
-                          "Kamu WAJIB menjawab dengan format persis seperti contoh di bawah ini (AngkaKalori#Saran), tanpa ada teks pembuka, penutup, atau tanda markdown apapun:\n" .
-                          "350#Batasi penggunaan minyak berlebih dan tambahkan sayuran hijau.";
+                $prompt = "Kamu adalah ahli gizi digital. Seseorang makan: {$food} dengan porsi: {$portion}.\n" .
+                          "Berikan estimasi total kalorinya (hanya angka bulat saja) diikuti tanda pagar (#) lalu sambung dengan 1 kalimat saran kesehatan singkat bahasa Indonesia.\n\n" .
+                          "CONTOH FORMAT JAWABAN (JANGAN MENULIS KATA LAIN, LANGSUNG SEPERTI INI):\n" .
+                          "350#Saran kesehatan singkat di sini.";
 
-                // Menggunakan model llama3-8b-8192 yang sudah terbukti lancar di aplikasi Anda
                 $response = Http::withoutVerifying()->withHeaders([
                     'Authorization' => 'Bearer ' . $apiKey,
                     'Content-Type'  => 'application/json',
                 ])->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model'       => 'llama3-8b-8192',
                     'messages'    => [['role' => 'user', 'content' => $prompt]],
-                    'temperature' => 0.2,
+                    'temperature' => 0.1, // Dikecilkan ke 0.1 agar AI sangat kaku & patuh format
                 ]);
 
                 if ($response->successful()) {
                     $rawContent = trim($response->json()['choices'][0]['message']['content'] ?? '');
                     
-                    // Bersihkan karakter aneh atau bungkus backtick jika AI tidak sengaja menyertakannya
-                    $rawContent = str_replace(['```', 'json'], '', $rawContent);
+                    // Bersihkan kotoran teks markdown yang sering merusak struktur kode
+                    $rawContent = str_replace(['```json', '```', 'json', '"', "'"], '', $rawContent);
                     $rawContent = trim($rawContent);
 
-                    // Memecah teks AI berdasarkan simbol pagar (#)
+                    // ==========================================
+                    // SANG PENGAMAN UTAMA (DETEKSI NYATA)
+                    // ==========================================
                     if (strpos($rawContent, '#') !== false) {
                         $parts = explode('#', $rawContent);
                         
-                        // Ambil bagian angka dan bersihkan dari karakter teks
-                        $calories = intval(filter_var($parts[0], FILTER_SANITIZE_NUMBER_INT)) ?: $calories;
+                        // Ekstrak angka kalori secara paksa
+                        preg_match('/\d+/', $parts[0], $matches);
+                        if (!empty($matches)) {
+                            $calories = intval($matches[0]);
+                        }
                         
-                        // Ambil bagian saran kesehatan
-                        $recommendation = trim($parts[1]);
-                    } else {
-                        Log::warn('Format respons AI tidak mengandung tanda pagar (#): ' . $rawContent);
+                        // Ekstrak saran kesehatan
+                        if (isset($parts[1]) && trim($parts[1]) != '') {
+                            $recommendation = trim($parts[1]);
+                        }
+                    } 
+                    // JIKA AI MBALELO (Tidak pakai tanda pagar tapi ngasih teks bebas)
+                    else {
+                        // Cari angka apa saja di dalam teks buatan AI untuk dijadikan Kalori
+                        if (preg_match('/\d+/', $rawContent, $matches)) {
+                            $calories = intval($matches[0]);
+                            // Jadikan seluruh teks dari AI sebagai rekomendasi
+                            $recommendation = $rawContent; 
+                        }
                     }
+                    // ==========================================
+
                 } else {
-                    Log::error('Groq API Gagal Merespon: ' . $response->body());
+                    Log::error('Groq Gagal: ' . $response->body());
                 }
             } catch (\Exception $e) {
-                Log::error('Koneksi ke API Groq bermasalah: ' . $e->getMessage());
+                Log::error('Eror Jaringan Groq: ' . $e->getMessage());
             }
         }
 
-        // 4. Menyimpan data hasil analisis AI yang sudah berhasil diparsing ke database
+        // 4. Simpan Hasilnya ke Database
         try {
             $diary = FoodDiary::create([
                 'user_id'           => Auth::id(),
@@ -115,7 +121,7 @@ class FoodDiaryController extends Controller
             ]);
 
         } catch (\Exception $dbError) {
-            Log::error('Database Error pada Food Diary: ' . $dbError->getMessage());
+            Log::error('Database Error: ' . $dbError->getMessage());
             return response()->json([
                 'message'       => 'Gagal menyimpan ke database.',
                 'error_details' => $dbError->getMessage()
@@ -123,16 +129,12 @@ class FoodDiaryController extends Controller
         }
     }
 
-    /**
-     * Menghapus catatan makanan berdasarkan ID.
-     */
     public function destroy($id)
     {
         $diary = FoodDiary::where('user_id', Auth::id())->find($id);
         if (!$diary) {
-            return response()->json(['message' => 'Data tidak ditemukan atau Anda tidak memiliki akses.'], 404);
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
         }
-        
         $diary->delete();
         return response()->json(['message' => 'Data berhasil dihapus']);
     }
