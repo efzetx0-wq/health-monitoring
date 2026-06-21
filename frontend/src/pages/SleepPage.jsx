@@ -28,17 +28,24 @@ export default function SleepPage() {
     }
   };
 
-  // CALCULATE DURATION
   const calculateDuration = (sleepTime, wakeTime) => {
-    if (!sleepTime || !wakeTime) return "";
-    const start = new Date(`2026-01-01 ${sleepTime}`);
-    const end = new Date(`2026-01-01 ${wakeTime}`);
-    let diff = (end - start) / (1000 * 60 * 60);
-    if (diff < 0) {
-      diff += 24;
-    }
-    return diff.toFixed(1);
-  };
+  if (!sleepTime || !wakeTime) return "";
+  const start = new Date(`2026-01-01 ${sleepTime}`);
+  const end = new Date(`2026-01-01 ${wakeTime}`);
+  
+  let diffMs = end - start;
+  if (diffMs < 0) {
+    diffMs += 24 * 60 * 60 * 1000; // Tambah 24 jam dalam milidetik
+  }
+  
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  
+  return `${hours} jam ${minutes} menit`; 
+  // Hasil untuk kasus Anda: "10 jam 50 menit"
+};
+
 
   // AUTO QUALITY
   const calculateQuality = (duration) => {
