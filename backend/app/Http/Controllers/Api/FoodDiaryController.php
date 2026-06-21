@@ -37,7 +37,7 @@ class FoodDiaryController extends Controller
             $cleanDateTime .= ':00';
         }
 
-        $apiKey = env('GROQ_API_KEY');
+        $apiKey = config('app.groq_api_key') ?? env('GROQ_API_KEY');
         
         // Nilai Cadangan Absolut jika Groq benar-benar mati konyol
         $calories = 250; 
