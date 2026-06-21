@@ -51,7 +51,7 @@ export default function ReportPage() {
     // Judul Analisis AI
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("AI Health Insight Analysis:", 14, 95);
+    doc.text("Health Insight Analysis:", 14, 95);
 
     // SOLUSI BUG BUNGKUS TEKS PARAGRAF DI PDF
     doc.setFont("helvetica", "normal");

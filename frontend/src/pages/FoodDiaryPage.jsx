@@ -200,7 +200,7 @@ export default function FoodDiaryPage() {
         </div>
 
         {/* HISTORY CONTAINER */}
-        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History & Recommendations</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History</h2>
 
         {/* 1. VIEW MOBILE */}
         <div className="block sm:hidden space-y-4">
@@ -262,7 +262,7 @@ export default function FoodDiaryPage() {
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Calories</th>
                 {/* 💡 PERBAIKAN: Menambahkan Header Notes */}
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
-                <th className="p-4 text-left text-sm font-semibold text-gray-600">Recommendation</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Keterangan</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>

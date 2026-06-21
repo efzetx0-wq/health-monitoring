@@ -49,61 +49,61 @@ export default function Sidebar() {
     },
 
     {
-      name: "Health Profile",
+      name: "Profile Kesehatan",
       path: "/health-profile",
       icon: <FaHeartbeat />
     },
 
     {
-      name: "Activities",
+      name: "Aktivitas",
       path: "/activities",
       icon: <FaRunning />
     },
 
     {
-      name: "Sleep",
+      name: "Tidur",
       path: "/sleep",
       icon: <FaMoon />
     },
 
     {
-      name: "Reports",
+      name: "Laporan",
       path: "/reports",
       icon: <FaChartBar />
     },
 
     {
-      name: "Vital Signs",
+      name: "Tanda-Tanda Vital",
       path: "/vital-signs",
       icon: <FaNotesMedical />
     },
 
     {
-      name: "Food Diary",
+      name: "Makanan",
       path: "/food-diary",
       icon: <FaUtensils />
     },
 
     {
-      name: "Daily Targets",
+      name: "Target Harian",
       path: "/daily-targets",
       icon: <FaBullseye />
     },
 
     {
-      name: "Reminders",
+      name: "Notifikasi",
       path: "/reminders",
       icon: <FaBell />
     },
 
     {
-      name: "Consultation",
+      name: "Konsultasi",
       path: "/doctors",
       icon: <FaUserMd />
     },
 
     {
-      name: "AI Chatbot",
+      name: "AI Kesehatan",
       path: "/chat-ai",
       icon: <FaRobot />
     },

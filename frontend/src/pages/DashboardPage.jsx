@@ -221,7 +221,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow border border-gray-100 dark:border-gray-700 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-              AI Real-time Health Insights 🤖
+              Health Insights
             </h2>
           </div>
 
