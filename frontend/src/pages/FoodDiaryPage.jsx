@@ -37,41 +37,41 @@ export default function FoodDiaryPage() {
     });
   };
 
-  // SAVE VIA AI GROQ BACKEND
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoadingAi(true);
-    setMessage("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoadingAi(true);
+  setMessage("");
 
-    try {
-      const payload = {
-        food_name: formData.food_name,
-        portion: formData.portion,
-        log_date: formData.consumed_at.split("T")[0] || new Date().toISOString().split("T")[0], // Fallback format tanggal YYYY-MM-DD
-        notes: formData.notes
-      };
+  try {
+    const payload = {
+      food_name: formData.food_name,
+      portion: formData.portion,
+      // 💡 UBAH BAGIAN INI: Ganti dari 'log_date' menjadi 'consumed_at' agar sinkron dengan Laravel
+      consumed_at: formData.consumed_at || new Date().toISOString(), 
+      notes: formData.notes
+    };
 
-      await createFoodDiary(payload);
-      setMessage("Makanan berhasil dianalisis AI dan disimpan!");
+    await createFoodDiary(payload);
+    setMessage("Makanan berhasil dianalisis AI dan disimpan!");
 
-      setFormData({
-        food_name: "",
-        portion: "",
-        consumed_at: "",
-        notes: ""
-      });
+    setFormData({
+      food_name: "",
+      portion: "",
+      consumed_at: "",
+      notes: ""
+    });
 
-      setTimeout(() => {
-        loadFoods();
-      }, 300);
+    setTimeout(() => {
+      loadFoods();
+    }, 300);
 
-    } catch (error) {
-      console.log(error);
-      alert("Gagal menganalisis atau menyimpan food diary");
-    } finally {
-      setLoadingAi(false);
-    }
-  };
+  } catch (error) {
+    console.log(error);
+    alert("Gagal menganalisis atau menyimpan food diary");
+  } finally {
+    setLoadingAi(false);
+  }
+};
 
   // DELETE
   const handleDelete = async (id) => {
