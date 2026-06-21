@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\MedicalController;
 use App\Http\Controllers\Api\GoogleFitController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DoctorChatController;
+use Illuminate\Support\Facades\Artisan;
 
 // --- RUTE PUBLIK ---
 Route::post('/register', [AuthController::class, 'register']);
@@ -60,4 +61,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/dashboard-insight', [ChatController::class, 'getDashboardInsight']);
     Route::get('/doctor-consultation/messages/{partnerId}', [DoctorChatController::class, 'getMessages']);
     Route::post('/doctor-consultation/send', [DoctorChatController::class, 'sendMessage']);
+
+    Route::get('/clear-all-cache', function() {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    return response()->json([
+        'status' => 'Sukses',
+        'message' => 'Cache server Railway berhasil dibersihkan! Laravel sekarang membaca API Key baru.'
+    ]);
+});
+
 });
