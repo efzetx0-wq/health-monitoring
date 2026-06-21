@@ -46,7 +46,7 @@ class SleepTrackingController extends Controller
             $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
             $durationRound = round($duration, 2);
 
-            // Logika Cadangan yang ketat jika AI sedang offline
+            // Logika Cadangan (Fallback)
             $aiQuality = 'good';
             if ($durationRound < 7.0) { 
                 $aiQuality = 'poor'; 
@@ -58,20 +58,21 @@ class SleepTrackingController extends Controller
 
             $aiRecommendation = "Durasi tidur terpantau dalam batas normal. Jaga ritme sirkadian Anda.";
 
-            // --- PROSES SMART AI GROQ ---
+            // --- PROSES SMART AI GROQ (PROMPT PERBAIKAN) ---
             $apiKey = config('app.groq_api_key') ?? env('GROQ_API_KEY');
             if ($apiKey) {
                 try {
-                    $prompt = "Kamu adalah spesialis kesehatan tidur klinis (Somnologist AI). Seseorang tidur dengan total durasi: {$durationRound} jam.\n" .
+                    $prompt = "Kamu adalah spesialis kesehatan tidur klinis (Somnologist AI). Seseorang tidur dengan total durasi: {$durationRound} jam.\n\n" .
                               "Tugasmu menentukan kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
-                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas adalah BURUK. Maka WAJIB tulis kode: poor\n" .
-                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah BAIK / IDEAL. Maka WAJIB tulis kode antara: good atau excellent\n" .
-                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas adalah BERLEBIHAN. Maka WAJIB tulis kode: fair\n\n" .
-                              "Berikan jawaban dengan format: kode_kualitas#1 kalimat saran bahasa indonesia.\n\n" .
-                              "CONTOH JAWABAN JIKA DURASI 7.5 JAM:\n" .
-                              "excellent#Durasi tidur Anda ideal dan sangat bagus untuk pemulihan energi sel tubuh.\n\n" .
-                              "CONTOH JAWABAN JIKA DURASI 9 JAM:\n" .
-                              "fair#Durasi tidur Anda {$durationRound} jam termasuk berlebihan. Tidur terlalu lama dapat mengacaukan ritme tubuh dan memicu hipersomnia yang membuat badan lemas.";
+                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas adalah BURUK. Maka WAJIB gunakan kode: poor\n" .
+                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah IDEAL. Maka WAJIB gunakan kode: excellent atau good\n" .
+                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas adalah BERLEBIHAN. Maka WAJIB gunakan kode: fair\n\n" .
+                              "FORMAT RESPONS HARUS TEPAT SEPERTI INI (Gunakan tanda # sebagai pemisah, tanpa kata pengantar apa pun):\n" .
+                              "kode_kualitas#Isi teks saran langsung dari kamu\n\n" .
+                              "CONTOH RESPONS YANG BENAR:\n" .
+                              "excellent#Durasi tidur Anda sangat ideal untuk pemulihan energi sel tubuh dan menjaga fokus besok pagi.\n" .
+                              "poor#Waktu tidur kurang dari 7 jam tidak baik untuk metabolisme dan dapat menurunkan sistem imun Anda.\n" .
+                              "fair#Durasi tidur lebih dari 8 jam ini berlebihan. Terlalu lama tidur bisa memicu rasa lemas dan sakit kepala.";
 
                     $response = Http::withoutVerifying()->withHeaders([
                         'Authorization' => 'Bearer ' . $apiKey,
@@ -79,7 +80,7 @@ class SleepTrackingController extends Controller
                     ])->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model'       => 'llama-3.1-8b-instant',
                         'messages'    => [['role' => 'user', 'content' => $prompt]],
-                        'temperature' => 0.1,
+                        'temperature' => 0.1, // Suhu rendah agar AI konsisten mengikuti format
                     ]);
 
                     if ($response->successful()) {
@@ -183,9 +184,9 @@ class SleepTrackingController extends Controller
                     $prompt = "Kamu adalah spesialis kesehatan tidur klinis. Seseorang tidur dengan total durasi: {$durationRound} jam.\n" .
                               "Tugasmu menentukan kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
                               "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas adalah BURUK (poor)\n" .
-                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah BAIK / IDEAL (good / excellent)\n" .
+                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas adalah IDEAL (good / excellent)\n" .
                               "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas adalah BERLEBIHAN (fair)\n\n" .
-                              "CONTOH JAWABAN:\ngood#Durasi tidur ideal.";
+                              "FORMAT RESPONS HARUS TEPAT SEPERTI INI:\nkode_kualitas#Isi teks saran langsung dari kamu";
 
                     $response = Http::withoutVerifying()->withHeaders([
                         'Authorization' => 'Bearer ' . $apiKey,
