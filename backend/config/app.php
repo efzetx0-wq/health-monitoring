@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+   
+    'groq_api_key' => env('GROQ_API_KEY'),
+
 ];
