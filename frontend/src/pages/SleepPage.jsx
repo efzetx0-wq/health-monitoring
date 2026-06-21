@@ -6,8 +6,7 @@ export default function SleepPage() {
   const [sleepData, setSleepData] = useState([]);
   const [message, setMessage] = useState("");
   const [loadingAi, setLoadingAi] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [expandedNotes, setExpandedNotes] = useState({}); // 💡 State untuk mencatat baris yang di-expand
+  const [expandedNotes, setExpandedNotes] = useState({}); // Melacak baris yang di-expand
   const [formData, setFormData] = useState({
     sleep_date: "", 
     sleep_time: "",
@@ -144,14 +143,6 @@ export default function SleepPage() {
     }));
   };
 
-  // Filter data pencarian
-  const filteredSleepData = sleepData.filter((item) => {
-    return (
-      item.sleep_date.includes(searchQuery) ||
-      (item.notes && item.notes.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  });
-
   return (
     <MainLayout>
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
@@ -205,21 +196,23 @@ export default function SleepPage() {
           </form>
         </div>
 
-        {/* HISTORY CONTAINER HEADER WITH FILTER */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 px-1">
+        {/* 💡 FITUR PENCARIAN TELAH DIHAPUS - HEADER KEMBALI SIMPEL */}
+        <div className="mb-4 px-1">
           <h2 className="text-xl font-bold text-gray-800">History & AI Analysis</h2>
-          <input type="text" placeholder="Cari tanggal atau teks catatan..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-white border border-gray-200 px-4 py-2 rounded-xl text-xs text-gray-700 focus:outline-none focus:border-blue-500 w-full sm:w-64 shadow-sm" />
         </div>
 
-        {/* 1. SEGMEN MOBILE LIST CARD (SANGAT FLEKSIBEL DI HP) */}
+        {/* 1. SEGMEN MOBILE LIST CARD (FLEKSIBEL DI HP) */}
         <div className="block sm:hidden space-y-4">
-          {filteredSleepData.length === 0 ? (
+          {sleepData.length === 0 ? (
             <p className="text-gray-400 text-center text-sm bg-white py-6 rounded-2xl shadow border border-gray-100">No sleep data found</p>
           ) : (
-            filteredSleepData.map((item) => {
+            sleepData.map((item) => {
               const qualityInfo = getIndonesianQuality(item.sleep_quality);
               const aiText = item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[1] : "Pola tidur normal.";
               const isExpanded = !!expandedNotes[item.id];
+
+              // Teks yang dipotong manual untuk HP
+              const shortAiTextMobile = aiText.length > 50 ? aiText.substring(0, 50) + "..." : aiText;
 
               return (
                 <div key={item.id} className="bg-white p-4 rounded-2xl shadow border border-gray-100 flex flex-col gap-3">
@@ -250,12 +243,13 @@ export default function SleepPage() {
                     {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}
                   </p>
 
-                  {/* BOX INSIGHT MEDIS DI HP DENGAN FITUR SHOW MORE */}
                   <div className="bg-blue-50/60 border border-blue-100 p-3 rounded-xl text-xs text-blue-900 leading-relaxed italic">
                     <span className="font-bold text-blue-800 block not-italic mb-1">💡 ANALISIS SPESIALIS AI:</span>
-                    <p className={isExpanded ? "" : "line-clamp-2"}>"{aiText}"</p>
-                    {aiText.length > 60 && (
-                      <button onClick={() => toggleExpand(item.id)} className="text-blue-600 font-bold mt-1.5 hover:underline block not-italic text-[11px]">
+                    <p className="whitespace-normal break-all">
+                      {isExpanded ? aiText : shortAiTextMobile}
+                    </p>
+                    {aiText.length > 50 && (
+                      <button onClick={() => toggleExpand(item.id)} className="text-blue-600 font-bold mt-1.5 hover:underline block not-italic text-[11px] cursor-pointer">
                         {isExpanded ? "🔄 Show Less" : "➕ Show More"}
                       </button>
                     )}
@@ -266,69 +260,64 @@ export default function SleepPage() {
           )}
         </div>
 
-        {/* 2. SEGMEN LAPTOP/DESKTOP TABLE (RAPI DENGAN TITIK-TITIK & SHOW MORE) */}
+        {/* 2. SEGMEN LAPTOP/DESKTOP TABLE (AMAN DARI MENIMPA / MERAH) */}
         <div className="hidden sm:block bg-white text-gray-800 rounded-2xl shadow overflow-hidden border border-gray-100">
-          <table className="w-full table-fixed">
+          <table className="w-full border-collapse">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="w-[11%] p-4 text-left text-sm font-semibold text-gray-600">Date</th>
-                <th className="w-[10%] p-4 text-left text-sm font-semibold text-gray-600">Sleep</th>
-                <th className="w-[10%] p-4 text-left text-sm font-semibold text-gray-600">Wake</th>
-                <th className="w-[14%] p-4 text-left text-sm font-semibold text-gray-600">Duration</th>
-                <th className="w-[12%] p-4 text-left text-sm font-semibold text-gray-600">Quality AI</th>
-                <th className="w-[13%] p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
-                <th className="w-[22%] p-4 text-left text-sm font-semibold text-gray-600">AI Medical Insight</th>
-                <th className="w-[8%] p-4 text-left text-sm font-semibold text-gray-600">Action</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Date</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Sleep Time</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Wake Time</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Duration</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Quality AI</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600 w-[35%]">AI Medical Insight</th> {/* Diberi porsi ruang yang besar */}
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredSleepData.length === 0 ? (
+              {sleepData.length === 0 ? (
                 <tr><td colSpan="8" className="p-6 text-center text-gray-400 text-sm">No sleep data found</td></tr>
               ) : (
-                filteredSleepData.map((item) => {
+                sleepData.map((item) => {
                   const qualityInfo = getIndonesianQuality(item.sleep_quality);
                   const aiText = item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[1] : "Pola tidur normal.";
                   const isExpanded = !!expandedNotes[item.id];
 
+                  // 💡 PERBAIKAN UTAMA: Memotong teks menggunakan substring JavaScript agar aman 100% dari CSS meluber
+                  const shortAiTextDesktop = aiText.length > 40 ? aiText.substring(0, 40) + "..." : aiText;
+
                   return (
                     <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 text-sm font-bold text-gray-900 align-top">{item.sleep_date}</td>
+                      <td className="p-4 text-sm font-bold text-gray-900 align-top whitespace-nowrap">{item.sleep_date}</td>
                       <td className="p-4 text-sm font-medium text-gray-800 align-top">{item.sleep_time}</td>
                       <td className="p-4 text-sm text-gray-600 align-top">{item.wake_time}</td>
-                      <td className="p-4 text-sm font-bold text-gray-700 align-top">{formatDecimalToText(item.sleep_duration)}</td>
+                      <td className="p-4 text-sm font-bold text-gray-700 align-top whitespace-nowrap">{formatDecimalToText(item.sleep_duration)}</td>
                       <td className="p-4 text-sm align-top">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-block ${qualityInfo.kelas}`}>{qualityInfo.teks}</span>
                       </td>
-                      <td className="p-4 text-sm text-gray-500 truncate align-top" title={item.notes}>
-                        {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}
+                     <td className="p-4 text-sm text-gray-500 align-top max-w-36 truncate" title={item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}>
+                      {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}
+                    </td>
+                                          
+                      <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 align-top font-medium leading-relaxed break-all whitespace-normal">
+                        {isExpanded ? aiText : shortAiTextDesktop}
+                        
+                        {aiText.length > 40 && (
+                          <button 
+                            onClick={() => toggleExpand(item.id)} 
+                            className="text-blue-600 font-bold mt-1.5 hover:text-blue-800 block not-italic text-[10px] cursor-pointer"
+                          >
+                            {isExpanded ? "🔄 Show Less" : "➕ Show More"}
+                          </button>
+                        )}
                       </td>
-                
-                        <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 align-top font-medium leading-relaxed">
-                          {(() => {
-                            const classTampilan = isExpanded 
-                              ? "w-full whitespace-normal break-words" 
-                              : "inline-block max-w-xs truncate";
-
-                            return (
-                              <div className={classTampilan}>
-                                "{aiText}"
-                              </div>
-                            );
-                          })()}
-                          
-                          {aiText.length > 40 && (
-                            <button 
-                              onClick={() => toggleExpand(item.id)} 
-                              className="text-blue-600 font-bold mt-1.5 hover:text-blue-800 block not-italic text-[10px] cursor-pointer"
-                            >
-                              {isExpanded ? "🔄 Show Less" : "➕ Show More"}
-                            </button>
-                          )}
-                        </td>
                       
                       <td className="p-4 align-top">
-                        <button onClick={() => handleDelete(item.id)} className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-xl text-xs font-semibold">Delete</button>
+                        <button onClick={() => handleDelete(item.id)} className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm cursor-pointer">
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   );
