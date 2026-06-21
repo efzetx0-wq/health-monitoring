@@ -303,18 +303,30 @@ export default function SleepPage() {
                       <td className="p-4 text-sm text-gray-500 truncate align-top" title={item.notes}>
                         {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}
                       </td>
-                      
-                      {/* Kolom Insight dengan efek truncate dinamis & tombol Show More */}
-                      <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 align-top font-medium leading-relaxed">
-                        <div className={isExpanded ? "break-words" : "truncate max-w-[280px]"}>
-                          {aiText}
-                        </div>
-                        {aiText.length > 40 && (
-                          <button onClick={() => toggleExpand(item.id)} className="text-blue-600 font-bold mt-1 hover:underline block not-italic text-[10px]">
-                            {isExpanded ? "🔄 Show Less" : "➕ Show More"}
-                          </button>
-                        )}
-                      </td>
+                
+                        <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 align-top font-medium leading-relaxed">
+                          {(() => {
+                            // Memisahkan kelas ke dalam variabel string murni agar editor tidak bingung
+                            const classTampilan = isExpanded 
+                              ? "w-full whitespace-normal break-words" 
+                              : "inline-block max-w-xs truncate";
+
+                            return (
+                              <div className={classTampilan}>
+                                "{aiText}"
+                              </div>
+                            );
+                          })()}
+                          
+                          {aiText.length > 40 && (
+                            <button 
+                              onClick={() => toggleExpand(item.id)} 
+                              className="text-blue-600 font-bold mt-1.5 hover:text-blue-800 block not-italic text-[10px] cursor-pointer"
+                            >
+                              {isExpanded ? "🔄 Show Less" : "➕ Show More"}
+                            </button>
+                          )}
+                        </td>
                       
                       <td className="p-4 align-top">
                         <button onClick={() => handleDelete(item.id)} className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-xl text-xs font-semibold">Delete</button>
