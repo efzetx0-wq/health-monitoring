@@ -99,7 +99,7 @@ export default function FoodDiaryPage() {
   return (
     <MainLayout>
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Food Diary AI</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Food Diary</h1>
 
         {/* SUMMARY */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
@@ -118,7 +118,7 @@ export default function FoodDiaryPage() {
 
         {/* FORM */}
         <div className="bg-white text-gray-800 p-5 sm:p-6 rounded-2xl shadow mb-8 border border-gray-50">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Add Food with AI Analysis</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Add Food</h2>
 
           {message && (
             <div className="bg-blue-50 text-blue-700 p-3 rounded-xl mb-4 text-sm font-medium border border-blue-100">
@@ -128,7 +128,7 @@ export default function FoodDiaryPage() {
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Nama Makanan (Ketik Bebas)</label>
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Nama Makanan</label>
               <input
                 type="text"
                 name="food_name"
@@ -141,7 +141,7 @@ export default function FoodDiaryPage() {
             </div>
 
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Jumlah / Porsi (Ketik Bebas)</label>
+              <label className="text-xs font-semibold text-gray-400 mb-1 px-1">Jumlah / Porsi</label>
               <input
                 type="text"
                 name="portion"
@@ -158,7 +158,7 @@ export default function FoodDiaryPage() {
               <input
                 type="text"
                 readOnly
-                placeholder="Dihitung Otomatis oleh Groq AI setelah disave"
+                placeholder="Dihitung Otomatis setelah disave"
                 className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-400 font-medium focus:outline-none"
               />
             </div>
@@ -194,13 +194,13 @@ export default function FoodDiaryPage() {
                 loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-50"
               }`}
             >
-              {loadingAi ? "🔄 Groq AI Sedang Menganalisis & Menghitung Kalori..." : "Hitung Kalori & Simpan via AI"}
+              {loadingAi ? "Sedang Menganalisis & Menghitung Kalori..." : "Hitung Kalori & Simpan via AI"}
             </button>
           </form>
         </div>
 
         {/* HISTORY CONTAINER */}
-        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History & AI Recommendations</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History & Recommendations</h2>
 
         {/* 1. VIEW MOBILE */}
         <div className="block sm:hidden space-y-4">
@@ -262,7 +262,7 @@ export default function FoodDiaryPage() {
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Calories</th>
                 {/* 💡 PERBAIKAN: Menambahkan Header Notes */}
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
-                <th className="p-4 text-left text-sm font-semibold text-gray-600">AI Recommendation</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Recommendation</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>
