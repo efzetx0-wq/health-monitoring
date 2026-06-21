@@ -306,7 +306,6 @@ export default function SleepPage() {
                 
                         <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 align-top font-medium leading-relaxed">
                           {(() => {
-                            // Memisahkan kelas ke dalam variabel string murni agar editor tidak bingung
                             const classTampilan = isExpanded 
                               ? "w-full whitespace-normal break-words" 
                               : "inline-block max-w-xs truncate";
