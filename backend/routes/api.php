@@ -62,7 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/doctor-consultation/messages/{partnerId}', [DoctorChatController::class, 'getMessages']);
     Route::post('/doctor-consultation/send', [DoctorChatController::class, 'sendMessage']);
 
-    Route::get('/clear-all-cache', function() {
+});
+
+Route::get('/clear-all-cache', function() {
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
     Artisan::call('route:clear');
@@ -70,6 +72,4 @@ Route::middleware('auth:sanctum')->group(function () {
         'status' => 'Sukses',
         'message' => 'Cache server Railway berhasil dibersihkan! Laravel sekarang membaca API Key baru.'
     ]);
-});
-
 });
