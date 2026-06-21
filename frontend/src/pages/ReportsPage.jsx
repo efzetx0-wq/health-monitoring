@@ -51,7 +51,7 @@ export default function ReportPage() {
     // Judul Analisis AI
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text("Health Insight Analysis:", 14, 95);
+    doc.text("AI Health Insight Analysis:", 14, 95);
 
     // SOLUSI BUG BUNGKUS TEKS PARAGRAF DI PDF
     doc.setFont("helvetica", "normal");
@@ -132,7 +132,7 @@ export default function ReportPage() {
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl text-blue-500"><FaRobot /></span>
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-              AI Weekly Health Insight
+               Health Insight
             </h2>
           </div>
           <div className="bg-blue-50/70 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400 p-4 sm:p-5 rounded-xl text-sm sm:text-base leading-relaxed border border-blue-100/50 dark:border-blue-900/20">
