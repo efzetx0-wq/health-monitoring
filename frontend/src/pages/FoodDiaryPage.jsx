@@ -37,41 +37,40 @@ export default function FoodDiaryPage() {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoadingAi(true);
-  setMessage("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoadingAi(true);
+    setMessage("");
 
-  try {
-    const payload = {
-      food_name: formData.food_name,
-      portion: formData.portion,
-      // 💡 UBAH BAGIAN INI: Ganti dari 'log_date' menjadi 'consumed_at' agar sinkron dengan Laravel
-      consumed_at: formData.consumed_at || new Date().toISOString(), 
-      notes: formData.notes
-    };
+    try {
+      const payload = {
+        food_name: formData.food_name,
+        portion: formData.portion,
+        consumed_at: formData.consumed_at || new Date().toISOString(), 
+        notes: formData.notes
+      };
 
-    await createFoodDiary(payload);
-    setMessage("Makanan berhasil dianalisis AI dan disimpan!");
+      await createFoodDiary(payload);
+      setMessage("Makanan berhasil dianalisis AI dan disimpan!");
 
-    setFormData({
-      food_name: "",
-      portion: "",
-      consumed_at: "",
-      notes: ""
-    });
+      setFormData({
+        food_name: "",
+        portion: "",
+        consumed_at: "",
+        notes: ""
+      });
 
-    setTimeout(() => {
-      loadFoods();
-    }, 300);
+      setTimeout(() => {
+        loadFoods();
+      }, 300);
 
-  } catch (error) {
-    console.log(error);
-    alert("Gagal menganalisis atau menyimpan food diary");
-  } finally {
-    setLoadingAi(false);
-  }
-};
+    } catch (error) {
+      console.log(error);
+      alert("Gagal menganalisis atau menyimpan food diary");
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
   // DELETE
   const handleDelete = async (id) => {
@@ -88,6 +87,19 @@ const handleSubmit = async (e) => {
     (total, item) => total + Number(item.calories || 0),
     0
   );
+
+  // Fungsi pembantu untuk merapikan tampilan tanggal agar enak dibaca
+  const formatTanggal = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString.replace(' ', 'T')); // Handle format MySQL
+    return date.toLocaleString("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
 
   return (
     <MainLayout>
@@ -212,7 +224,8 @@ const handleSubmit = async (e) => {
                 <div className="flex justify-between items-start border-b border-gray-50 pb-2">
                   <div>
                     <h3 className="font-bold text-gray-800 text-base capitalize">{food.food_name}</h3>
-                    <span className="text-xs text-gray-400">{food.log_date || food.created_at}</span>
+                    {/* 💡 SINKRONISASI: Mengubah food.log_date menjadi food.consumed_at */}
+                    <span className="text-xs text-gray-400">{formatTanggal(food.consumed_at || food.created_at)}</span>
                   </div>
                   <button
                     onClick={() => handleDelete(food.id)}
@@ -236,7 +249,7 @@ const handleSubmit = async (e) => {
                 {/* REKOMENDASI AI MOBILE */}
                 <div className="bg-emerald-50/70 border border-emerald-100 p-3 rounded-xl text-xs text-emerald-900 leading-relaxed italic">
                   <span className="font-bold text-emerald-800 block not-italic mb-1">💡 REKOMENDASI SEHAT AI:</span>
-                  "{food.ai_recommendation || "Tetap batasi minyak berlebih dan imbangi dengan olahraga teratur."}"
+                  "{food.ai_recommendation || "Tetap jaga porsi makan dan imbangi dengan olahraga teratur."}"
                 </div>
 
                 {food.notes && (
@@ -254,6 +267,7 @@ const handleSubmit = async (e) => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Waktu</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Food</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Portion</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Calories</th>
@@ -264,11 +278,13 @@ const handleSubmit = async (e) => {
             <tbody>
               {foods.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="p-6 text-center text-gray-400 text-sm">No food diary found</td>
+                  <td colSpan="6" className="p-6 text-center text-gray-400 text-sm">No food diary found</td>
                 </tr>
               ) : (
                 foods.map((food) => (
                   <tr key={food.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    {/* 💡 TAMBAHAN: Kolom Tanggal di Desktop agar informatif */}
+                    <td className="p-4 text-xs text-gray-400 whitespace-nowrap">{formatTanggal(food.consumed_at || food.created_at)}</td>
                     <td className="p-4 text-sm font-semibold text-gray-800 capitalize">{food.food_name}</td>
                     <td className="p-4 text-sm text-gray-600">{food.portion}</td>
                     <td className="p-4 text-sm font-bold text-emerald-600">{food.calories} kcal</td>
