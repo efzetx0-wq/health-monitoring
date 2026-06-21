@@ -5,8 +5,9 @@ import { getSleepTrackings, createSleepTracking, deleteSleepTracking } from "../
 export default function SleepPage() {
   const [sleepData, setSleepData] = useState([]);
   const [message, setMessage] = useState("");
+  const [loadingAi, setLoadingAi] = useState(false);
   const [formData, setFormData] = useState({
-    sleep_date: "", // 💡 TITIK 1: Inisialisasi properti tanggal baru
+    sleep_date: "", 
     sleep_time: "",
     wake_time: "",
     sleep_quality: "",
@@ -29,32 +30,22 @@ export default function SleepPage() {
   };
 
   const calculateDuration = (sleepTime, wakeTime) => {
-  if (!sleepTime || !wakeTime) return "";
-  const start = new Date(`2026-01-01 ${sleepTime}`);
-  const end = new Date(`2026-01-01 ${wakeTime}`);
-  
-  let diffMs = end - start;
-  if (diffMs < 0) {
-    diffMs += 24 * 60 * 60 * 1000; // Tambah 24 jam dalam milidetik
-  }
-  
-  const totalMinutes = Math.floor(diffMs / (1000 * 60));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  
-  return `${hours} jam ${minutes} menit`; 
-  // Hasil untuk kasus Anda: "10 jam 50 menit"
-};
-
-
-  // AUTO QUALITY
-  const calculateQuality = (duration) => {
-    const hours = parseFloat(duration);
-    if (!hours) return "";
-    if (hours < 5) return "poor";
-    if (hours < 7) return "fair";
-    if (hours < 8) return "good";
-    return "excellent";
+    if (!sleepTime || !wakeTime) return "";
+    const start = new Date(`2026-01-01 ${sleepTime}`);
+    const end = new Date(`2026-01-01 ${wakeTime}`);
+    
+    let diffMs = end - start;
+    if (diffMs < 0) {
+      diffMs += 24 * 60 * 60 * 1000; // Tambah 24 jam dalam milidetik
+    }
+    
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    // Konversi ke format jam desimal agar sesuai backend
+    const decimalHours = (totalMinutes / 60).toFixed(2);
+    return decimalHours;
   };
 
   // HANDLE INPUT
@@ -70,8 +61,8 @@ export default function SleepPage() {
         name === "sleep_time" ? value : updatedData.sleep_time,
         name === "wake_time" ? value : updatedData.wake_time
       );
-
-      updatedData.sleep_quality = calculateQuality(updatedData.sleep_duration);
+      // Status kualitas dikosongkan karena akan ditulis otomatis oleh AI setelah disave
+      updatedData.sleep_quality = "Menghitung via AI...";
     }
 
     setFormData(updatedData);
@@ -80,21 +71,22 @@ export default function SleepPage() {
   // SAVE
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoadingAi(true);
+    setMessage("");
+
     try {
-      // TITIK 2: Pastikan sleep_date masuk ke dalam kiriman data ke Laravel
       const payload = {
-        ...formData,
-        sleep_date: formData.sleep_date, 
-        sleep_quality: formData.sleep_quality ? formData.sleep_quality.toLowerCase() : "good",
-        sleep_duration: formData.sleep_duration ? parseFloat(formData.sleep_duration) : 0
+        sleep_date: formData.sleep_date,
+        sleep_time: formData.sleep_time,
+        wake_time: formData.wake_time,
+        notes: formData.notes
       };
 
       await createSleepTracking(payload);
 
       window.dispatchEvent(new Event("dashboard-update"));
-      setMessage("Data tidur berhasil disimpan");
+      setMessage("Data tidur berhasil dianalisis AI dan disimpan!");
 
-      // RESET FORM (Termasuk mengosongkan tanggal kembali)
       setFormData({
         sleep_date: "",
         sleep_time: "",
@@ -107,6 +99,9 @@ export default function SleepPage() {
       await loadSleepData();
     } catch (error) {
       console.log(error);
+      alert("Gagal menyimpan atau menganalisis data tidur.");
+    } finally {
+      setLoadingAi(false);
     }
   };
 
@@ -128,21 +123,21 @@ export default function SleepPage() {
         ).toFixed(1)
       : 0;
 
-  // Badge Color Helper
-  const getQualityBadgeColor = (quality) => {
+  // Kamus Penerjemah Kualitas ke Bahasa Indonesia & Style Tailwind v4 Aman
+  const getIndonesianQuality = (quality) => {
     switch (quality?.toLowerCase()) {
-      case "excellent": return "bg-emerald-50 text-emerald-600";
-      case "good": return "bg-blue-50 text-blue-600";
-      case "fair": return "bg-amber-50 text-amber-600";
-      case "poor": return "bg-rose-50 text-rose-600";
-      default: return "bg-gray-50 text-gray-600";
+      case "excellent": return { teks: "Sangat Baik", kelas: "bg-emerald-50 text-emerald-600" };
+      case "good": return { teks: "Baik", kelas: "bg-blue-50 text-blue-600" };
+      case "fair": return { teks: "Kurang / Berlebih", kelas: "bg-amber-50 text-amber-600" };
+      case "poor": return { teks: "Sangat Buruk", kelas: "bg-rose-50 text-rose-600" };
+      default: return { teks: "Mengukur...", kelas: "bg-gray-50 text-gray-600" };
     }
   };
 
   return (
     <MainLayout>
       <div className="p-4 sm:p-6 pb-24 md:pb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Sleep Tracking</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900">Sleep Tracking AI</h1>
 
         {/* SUMMARY CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
@@ -160,11 +155,11 @@ export default function SleepPage() {
         {/* FORM */}
         <div className="bg-white text-gray-800 p-5 sm:p-6 rounded-2xl shadow mb-8 border border-gray-50">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Add Sleep Record</h2>
-          {message && <div className="bg-green-100 text-green-700 p-3 rounded-xl mb-4 text-sm font-medium">{message}</div>}
+          {message && <div className="bg-blue-50 text-blue-700 p-3 rounded-xl mb-4 text-sm font-medium border border-blue-100">{message}</div>}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* 💡 TITIK 3: INPUT TANGGAL (Ditaruh paling atas agar user memilih tanggal terlebih dahulu) */}
+            {/* INPUT TANGGAL */}
             <div className="sm:col-span-2">
               <label className="block mb-2 text-sm font-medium text-gray-600">Sleep Date</label>
               <input
@@ -183,6 +178,7 @@ export default function SleepPage() {
               <input
                 type="time"
                 name="sleep_time"
+                required
                 value={formData.sleep_time}
                 onChange={handleChange}
                 className="w-full bg-white border border-gray-200 p-3 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-blue-500"
@@ -195,21 +191,22 @@ export default function SleepPage() {
               <input
                 type="time"
                 name="wake_time"
+                required
                 value={formData.wake_time}
                 onChange={handleChange}
                 className="w-full bg-white border border-gray-200 p-3 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* QUALITY */}
+            {/* QUALITY (DIHITUNG AI) */}
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-600">Sleep Quality</label>
               <input
                 type="text"
-                value={formData.sleep_quality ? formData.sleep_quality.toUpperCase() : ""}
+                value={formData.sleep_time && formData.wake_time ? "Otomatis Ditentukan AI" : ""}
                 readOnly
-                placeholder="Auto calculated"
-                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-500 font-semibold focus:outline-none"
+                placeholder="Auto calculated by AI"
+                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-400 font-semibold focus:outline-none"
               />
             </div>
 
@@ -221,7 +218,7 @@ export default function SleepPage() {
                 value={formData.sleep_duration ? `${formData.sleep_duration} Hours` : ""}
                 readOnly
                 placeholder="Auto calculated"
-                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-500 font-semibold focus:outline-none"
+                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl text-sm text-gray-400 font-semibold focus:outline-none"
               />
             </div>
 
@@ -238,132 +235,136 @@ export default function SleepPage() {
               />
             </div>
 
-            {/* BUTTON */}
-            <button className="bg-blue-600 hover:bg-blue-700 transition text-white p-3 rounded-xl sm:col-span-2 font-semibold text-sm sm:text-base shadow-md shadow-blue-100">
-              Save Sleep Data
+            {/* BUTTON BIRU */}
+            <button 
+              disabled={loadingAi}
+              className={`text-white p-3 rounded-xl sm:col-span-2 font-semibold text-sm sm:text-base shadow-md transition ${
+                loadingAi ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 shadow-blue-50"
+              }`}
+            >
+              {loadingAi ? "🔄 AI Sedang Menganalisis Kualitas Tidur..." : "Save Sleep Data & AI Analysis"}
             </button>
           </form>
         </div>
 
         {/* HISTORY CONTAINER */}
-        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-800 px-1">History & AI Analysis</h2>
 
-        {/* =============================================================== */}
-        {/* 1. SEGMEN MOBILE LIST CARD (💡 TITIK 4A: Ditambahkan Info Tanggal) */}
-        {/* =============================================================== */}
+        {/* 1. SEGMEN MOBILE LIST CARD */}
         <div className="block sm:hidden space-y-4">
           {sleepData.length === 0 ? (
             <p className="text-gray-400 text-center text-sm bg-white py-6 rounded-2xl shadow border border-gray-100">
               No sleep data found
             </p>
           ) : (
-            sleepData.map((item) => (
-              <div key={item.id} className="bg-white p-4 rounded-2xl shadow border border-gray-100 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    {/* Tampilkan Info Tanggal di Sisi Paling Atas Mobile Card */}
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md mb-2 inline-block">
-                      {item.sleep_date}
-                    </span>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                      <div>
-                        <p className="text-[11px] text-gray-400 font-medium">Sleep Time</p>
-                        <p className="text-sm font-semibold text-gray-700">{item.sleep_time}</p>
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-gray-400 font-medium">Wake Time</p>
-                        <p className="text-sm font-semibold text-gray-700">{item.wake_time}</p>
+            sleepData.map((item) => {
+              const qualityInfo = getIndonesianQuality(item.sleep_quality);
+              return (
+                <div key={item.id} className="bg-white p-4 rounded-2xl shadow border border-gray-100 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md mb-2 inline-block">
+                        {item.sleep_date}
+                      </span>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <div>
+                          <p className="text-[11px] text-gray-400 font-medium">Sleep Time</p>
+                          <p className="text-sm font-semibold text-gray-700">{item.sleep_time}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-gray-400 font-medium">Wake Time</p>
+                          <p className="text-sm font-semibold text-gray-700">{item.wake_time}</p>
+                        </div>
                       </div>
                     </div>
+                    
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="bg-red-50 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition"
-                  >
-                    Delete
-                  </button>
-                </div>
 
-                <div className="flex gap-2 items-center border-t border-b border-gray-50 py-2">
-                  <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-bold">
-                    {item.sleep_duration} h
-                  </span>
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${getQualityBadgeColor(item.sleep_quality)}`}>
-                    {item.sleep_quality ? item.sleep_quality.charAt(0).toUpperCase() + item.sleep_quality.slice(1) : "-"}
-                  </span>
-                </div>
+                  <div className="flex gap-2 items-center border-t border-b border-gray-50 py-2">
+                    <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-xs font-bold">
+                      {item.sleep_duration} h
+                    </span>
+                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${qualityInfo.kelas}`}>
+                      {qualityInfo.teks}
+                    </span>
+                  </div>
 
-                {item.notes && (
                   <p className="text-xs text-gray-500">
-                    <span className="font-semibold text-gray-700">Notes:</span> {item.notes}
+                    <span className="font-semibold text-gray-700">Notes:</span>{" "}
+                    {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes}
                   </p>
-                )}
-              </div>
-            ))
+
+                  <div className="bg-blue-50/60 border border-blue-100 p-3 rounded-xl text-xs text-blue-900 leading-relaxed italic">
+                    <span className="font-bold text-blue-800 block not-italic mb-1">💡 ANALISIS SPESIALIS AI:</span>
+                    "{item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[1] : "Pola tidur normal."}"
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
 
-        {/* =============================================================== */}
-        {/* 2. SEGMEN LAPTOP/DESKTOP TABLE (💡 TITIK 4B: Tambah Kolom Date)    */}
-        {/* =============================================================== */}
+        {/* 2. SEGMEN LAPTOP/DESKTOP TABLE */}
         <div className="hidden sm:block bg-white text-gray-800 rounded-2xl shadow overflow-hidden border border-gray-100">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {/* Tambah Header Kolom Date */}
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Date</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Sleep Time</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Wake Time</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Duration</th>
-                <th className="p-4 text-left text-sm font-semibold text-gray-600">Quality</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">Quality AI</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Notes</th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">AI Medical Insight</th>
                 <th className="p-4 text-left text-sm font-semibold text-gray-600">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {sleepData.length === 0 && (
+              {sleepData.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-6 text-center text-gray-400 text-sm">
+                  <td colSpan="8" className="p-6 text-center text-gray-400 text-sm">
                     No sleep data found
                   </td>
                 </tr>
+              ) : (
+                sleepData.map((item) => {
+                  const qualityInfo = getIndonesianQuality(item.sleep_quality);
+                  return (
+                    <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 text-sm font-bold text-gray-900">{item.sleep_date}</td>
+                      <td className="p-4 text-sm font-medium text-gray-800">{item.sleep_time}</td>
+                      <td className="p-4 text-sm text-gray-600">{item.wake_time}</td>
+                      <td className="p-4 text-sm font-bold text-gray-700">{item.sleep_duration} h</td>
+                      <td className="p-4 text-sm">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${qualityInfo.kelas}`}>
+                          {qualityInfo.teks}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-500 max-w-40 truncate" title={item.notes}>
+                        {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[0] : item.notes || "-"}
+                      </td>
+                      <td className="p-4 text-xs italic text-blue-800 bg-blue-50/20 max-w-40 truncate" title={item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[1] : ""}>
+                        {item.notes && item.notes.includes(" [AI]: ") ? item.notes.split(" [AI]: ")[1] : "Pola tidur normal."}
+                      </td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-xl text-xs font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-
-              {sleepData.map((item) => (
-                <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-                  {/* Tampilkan data sleep_date di tabel baris pertama */}
-                  <td className="p-4 text-sm font-bold text-gray-900">
-                    {item.sleep_date}
-                  </td>
-                  <td className="p-4 text-sm font-medium text-gray-800">
-                    {item.sleep_time}
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    {item.wake_time}
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    {item.sleep_duration} h
-                  </td>
-                  <td className="p-4 text-sm">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getQualityBadgeColor(item.sleep_quality)}`}>
-                      {item.sleep_quality ? item.sleep_quality.charAt(0).toUpperCase() + item.sleep_quality.slice(1) : "-"}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm text-gray-500 max-w-xs truncate">
-                    {item.notes || "-"}
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-xl text-xs font-semibold"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>
