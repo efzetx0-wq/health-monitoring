@@ -12,96 +12,94 @@ use Illuminate\Support\Facades\Log;
 class FoodDiaryController extends Controller
 {
     /**
-     * Menampilkan semua riwayat makanan milik user yang sedang login.
+     * Menampilkan semua daftar catatan makanan milik user yang sedang login.
      */
     public function index()
     {
-        // Mengambil data mentah tanpa relasi table foods lama
-        $diaries = FoodDiary::where('user_id', Auth::id())
-            ->latest()
-            ->get();
-            
+        // Mengambil data diary makanan berdasarkan user_id secara realtime dan diurutkan dari yang terbaru
+        $diaries = FoodDiary::where('user_id', Auth::id())->latest()->get();
         return response()->json($diaries);
     }
 
     /**
-     * Menerima input teks bebas, meminta hitungan kalori ke Groq AI, dan menyimpan ke DB.
+     * Menyimpan catatan makanan baru dan menganalisis kalori serta rekomendasi menggunakan Groq AI.
      */
     public function store(Request $request)
     {
-        // 1. Validasi input yang dikirim oleh React baru
+        // 1. Validasi input dari frontend (menyesuaikan dengan parameter consumed_at)
         $request->validate([
             'food_name'   => 'required|string',
             'portion'     => 'required|string',
-            'consumed_at' => 'required', // Menerima input datetime-local dari frontend
+            'consumed_at' => 'required', 
             'notes'       => 'nullable|string'
         ]);
 
         $food = $request->food_name;
         $portion = $request->portion;
 
-        // 2. Normalisasi format tanggal agar disukai oleh kolom Datetime MySQL
-        // Mengubah "2026-06-21T13:00" menjadi "2026-06-21 13:00:00"
+        // 2. Mengamankan format datetime agar sesuai dengan standar database MySQL (Y-m-d H:i:s)
         $rawDate = $request->consumed_at;
         $cleanDateTime = str_replace('T', ' ', $rawDate); 
         if (strlen($cleanDateTime) == 16) {
-            $cleanDateTime .= ':00'; // Menambahkan detik jika belum ada
+            $cleanDateTime .= ':00';
         }
 
-        // 3. Konfigurasi Awal Hubungan ke Groq AI
         $apiKey = env('GROQ_API_KEY');
         
-        // Nilai cadangan (Fallback) jika seandainya API Groq limit/down/salah API Key
-        $calories = 250;
-        $recommendation = "Tetap batasi minyak berlebih dan imbangi makanan Anda dengan air putih serta serat secukupnya.";
+        // Nilai fallback default jika integrasi API AI mengalami kendala
+        $calories = 250; 
+        $recommendation = "Imbangi makanan Anda dengan air putih dan serat secukupnya.";
 
+        // 3. Proses Analisis Menggunakan Groq AI (Llama 3)
         if ($apiKey) {
             try {
-                $prompt = "Bertindaklah sebagai ahli gizi digital terpercaya. Seseorang memakan makanan berikut:\n" .
+                // Prompt yang ketat agar AI mengembalikan format JSON murni tanpa hiasan markdown
+                $prompt = "Kamu adalah sistem pakar ahli gizi (Nutritionist AI) yang akurat. " .
+                          "Tugasmu adalah menganalisis makanan berikut:\n" .
                           "Nama Makanan: {$food}\n" .
                           "Porsi: {$portion}\n\n" .
-                          "Hitung estimasi total kalorinya (hanya angka integer) dan berikan 1 kalimat saran/rekomendasi singkat berbahasa Indonesia agar makanan ini menjadi lebih sehat atau alternatif pengganti yang mirip namun lebih bernutrisi.\n\n" .
-                          "Anda WAJIB merespon dalam format JSON mentah seperti ini tanpa teks pembuka/penutup/pembungkus markdown markdown apapun:\n" .
+                          "Hitung estimasi total kalori dalam bentuk angka bulat (integer). " .
+                          "Berikan 1 kalimat saran kesehatan singkat, spesifik, dan relevan sesuai jenis makanan tersebut dalam bahasa Indonesia.\n\n" .
+                          "Kamu WAJIB mengembalikan jawaban hanya dalam format JSON mentah berikut tanpa teks pembuka, tanpa penjelasan, dan tanpa bungkus markdown:\n" .
                           "{\n" .
                           "  \"calories\": 350,\n" .
-                          "  \"recommendation\": \"Saran dari AI disini...\"\n" .
+                          "  \"recommendation\": \"Saran spesifik sesuai makanan di sini.\"\n" .
                           "}";
 
-                // Mengirim request ke API Groq menggunakan model tercepat (Llama3)
+                // Memanggil API Groq
                 $response = Http::withoutVerifying()->withHeaders([
                     'Authorization' => 'Bearer ' . $apiKey,
                     'Content-Type'  => 'application/json',
                 ])->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model'       => 'llama3-8b-8192',
-                    'messages'    => [
-                        ['role' => 'user', 'content' => $prompt]
-                    ],
-                    'temperature' => 0.2, // Nilai rendah agar AI patuh pada format JSON
+                    'messages'    => [['role' => 'user', 'content' => $prompt]],
+                    'temperature' => 0.2, // Nilai rendah agar hasil AI lebih konsisten dan tidak berhalusinasi format
                 ]);
 
                 if ($response->successful()) {
-                    $content = $response->json()['choices'][0]['message']['content'] ?? '';
+                    $rawContent = $response->json()['choices'][0]['message']['content'] ?? '';
                     
-                    // Bersihkan tanda backtick markdown jika AI tidak sengaja menyertakannya
-                    $content = trim(str_replace(['```json', '```'], '', $content));
+                    // Membersihkan format markdown (seperti ```json ... ```) yang sering kali disisipkan oleh Llama
+                    $cleanContent = trim(str_replace(['```json', '```'], '', $rawContent));
                     
-                    $aiResult = json_decode($content, true);
+                    $aiResult = json_decode($cleanContent, true);
                     
-                    if (isset($aiResult['calories'])) {
-                        $calories = intval($aiResult['calories']);
-                    }
-                    if (isset($aiResult['recommendation'])) {
-                        $recommendation = $aiResult['recommendation'];
+                    // Jika proses decode JSON berhasil, simpan datanya ke variabel utama
+                    if (json_last_error() === JSON_ERROR_NONE && $aiResult) {
+                        $calories = isset($aiResult['calories']) ? intval($aiResult['calories']) : $calories;
+                        $recommendation = $aiResult['recommendation'] ?? $recommendation;
+                    } else {
+                        Log::error('Gagal melakukan decode JSON dari Groq. Raw data asli dari AI: ' . $rawContent);
                     }
                 } else {
-                    Log::error('Groq API Gagal Merespon: ' . $response->body());
+                    Log::error('Groq API Error: ' . $response->body());
                 }
             } catch (\Exception $e) {
-                Log::error('Koneksi Groq Bermasalah: ' . $e->getMessage());
+                Log::error('Koneksi ke API Groq bermasalah: ' . $e->getMessage());
             }
         }
 
-        // 4. Menyimpan data ke database melalui Model dengan kolom yang sudah sinkron
+        // 4. Menyimpan data hasil analisis AI ke dalam database lokal
         try {
             $diary = FoodDiary::create([
                 'user_id'           => Auth::id(),
@@ -109,7 +107,7 @@ class FoodDiaryController extends Controller
                 'portion'           => $portion,
                 'calories'          => $calories,
                 'ai_recommendation' => $recommendation,
-                'consumed_at'       => $cleanDateTime, // Menggunakan penamaan kolom asli database Anda
+                'consumed_at'       => $cleanDateTime, 
                 'notes'             => $request->notes ?? '-',
             ]);
 
@@ -120,27 +118,24 @@ class FoodDiaryController extends Controller
 
         } catch (\Exception $dbError) {
             Log::error('Database Error pada Food Diary: ' . $dbError->getMessage());
-            
-            // Melempar detail eror MySQL asli ke React agar mudah dibaca di Inspect Element Network
             return response()->json([
-                'message'       => 'Gagal menyimpan data ke database. Silakan periksa kolom database Anda.',
-                'error_detail'  => $dbError->getMessage()
+                'message'       => 'Gagal menyimpan ke database.',
+                'error_details' => $dbError->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Menghapus riwayat makanan berdasarkan ID.
+     * Menghapus catatan makanan berdasarkan ID.
      */
     public function destroy($id)
     {
         $diary = FoodDiary::where('user_id', Auth::id())->find($id);
-        
         if (!$diary) {
-            return response()->json(['message' => 'Data tidak ditemukan atau bukan milik Anda.'], 404);
+            return response()->json(['message' => 'Data tidak ditemukan atau Anda tidak memiliki akses.'], 404);
         }
         
         $diary->delete();
-        return response()->json(['message' => 'Data riwayat makanan berhasil dihapus.']);
+        return response()->json(['message' => 'Data berhasil dihapus']);
     }
 }
