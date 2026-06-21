@@ -46,7 +46,7 @@ class SleepTrackingController extends Controller
             $duration = $sleepTime->diffInMinutes($wakeTime) / 60;
             $durationRound = round($duration, 2);
 
-            // Logika Fallback
+            // LOGIKA CADANGAN (FALLBACK) JIKA API GROQ DOWN
             $aiQuality = 'good';
             if ($durationRound < 7.0) { 
                 $aiQuality = 'poor'; 
@@ -56,42 +56,42 @@ class SleepTrackingController extends Controller
                 $aiQuality = 'excellent';
             }
 
-            $aiRecommendation = "Durasi tidur terpantau dalam batas normal. Jaga ritme sirkadian Anda.";
+            $aiRecommendation = "Durasi tidur terpantau dalam batas normal sebesar {$durationRound} jam. Jaga ritme sirkadian Anda.";
 
-            // --- PROSES SMART AI GROQ (PROMPT MEDIS DETIL & STRUKTUR SARAN) ---
+            // --- PROSES SMART AI GROQ (PERBAIKAN STRUKTUR MESSAGES) ---
             $apiKey = config('app.groq_api_key') ?? env('GROQ_API_KEY');
             if ($apiKey) {
                 try {
-                    $prompt = "Kamu adalah spesialis kesehatan tidur klinis (Somnologist AI). Seseorang memiliki durasi tidur: {$durationRound} jam.\n\n" .
-                              "Tugasmu menentukan kode kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
-                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas BURUK. Maka WAJIB gunakan kode: poor\n" .
-                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas IDEAL/BAIK. Maka WAJIB gunakan kode: excellent atau good\n" .
-                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas BERLEBIHAN. Maka WAJIB gunakan kode: fair\n\n" .
-                              "Ketentuan menulis isi teks setelah tanda pagar (#):\n" .
-                              "- Jelaskan secara spesifik apa DAMPAK MEDIS / EFEK BURUKNYA terhadap tubuh (apa yang ditimbulkan/menyebabkan apa) jika tidur kurang (<7 jam) atau berlebihan (>8 jam).\n" .
-                              "- Jika durasinya ideal (7-8 jam), jelaskan efek positifnya bagi tubuh.\n" .
-                              "- Berikan SARAN tindakan nyata di akhir kalimat.\n\n" .
-                              "FORMAT RESPONS HARUS SEPERTI INI (Tanpa kata pengantar, langsung kode#isitekssaran):\n" .
-                              "kode_kualitas#Penjelasan dampak medis serta saran langsung.\n\n" .
-                              "CONTOH RESPONS JIKA KURANG DARI 7 JAM:\n" .
-                              "poor#Tidur kurang dari 7 jam menyebabkan penurunan imunitas, gangguan konsentrasi, serta meningkatkan risiko obesitas karena hormon lapar terganggu. Disarankan untuk menjadwalkan tidur lebih awal malam ini dan hindari kafein 6 jam sebelum tidur.\n\n" .
-                              "CONTOH RESPONS JIKA LEBIH DARI 8 JAM:\n" .
-                              "fair#Tidur lebih dari 8 jam berlebihan dan berisiko menyebabkan gangguan metabolisme, memicu sakit kepala (oversleeping), serta badan terasa lemas akibat gangguan siklus sirkadian. Disarankan pasang alarm di pagi hari dan batasi waktu tidur siang maksimal 20 menit agar ritme kembali normal.\n\n" .
-                              "CONTOH RESPONS JIKA RENTANG 7-8 JAM:\n" .
-                              "excellent#Durasi tidur 7-8 jam sangat ideal dan terbukti mengoptimalkan regenerasi sel, menjaga kesehatan jantung, serta meningkatkan daya ingat. Pertahankan konsistensi jam tidur dan bangun ini setiap hari termasuk di akhir pekan.";
+                    $systemInstruction = "Kamu adalah Somnologist AI (Spesialis Medis Kesehatan Tidur Klinis).\n" .
+                                         "Tugasmu menerima input data durasi tidur (dalam jam) lalu mengembalikan respons dengan format ketat: KODE_KUALITAS#ANALISIS_MEDIS_DAN_SARAN\n\n" .
+                                         "ATURAN DETERMINASI KUALITAS:\n" .
+                                         "- Jika durasi < 7.0 jam, gunakan KODE: poor (Jelaskan efek buruk/dampak medis kurang tidur bagi organ tubuh/imun dan berikan saran solusi).\n" .
+                                         "- Jika durasi 7.0 hingga 8.0 jam, gunakan KODE: excellent atau good (Jelaskan dampak positif regenerasi sel dan saran mempertahankan pola).\n" .
+                                         "- Jika durasi > 8.0 jam, gunakan KODE: fair (Jelaskan dampak medis oversleeping seperti sakit kepala/lemas dan saran alarm/aktivitas).\n\n" .
+                                         "PENTING: Jangan berikan kata pembuka, penutup, markdown, atau teks instruksi apa pun. Langsung berikan hasil akhir berupa 'kode#kalimat_analisis'.";
 
                     $response = Http::withoutVerifying()->withHeaders([
                         'Authorization' => 'Bearer ' . $apiKey,
                         'Content-Type'  => 'application/json',
                     ])->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model'       => 'llama-3.1-8b-instant',
-                        'messages'    => [['role' => 'user', 'content' => $prompt]],
-                        'temperature' => 0.1,
+                        'messages'    => [
+                            ['role' => 'system', 'content' => $systemInstruction],
+                            // Few-Shot Examples agar AI paham variasi durasi
+                            ['role' => 'user', 'content' => "Input Durasi: 5.5 jam"],
+                            ['role' => 'assistant', 'content' => "poor#Tidur selama 5.5 jam kurang dari standar klinis, berisiko menyebabkan penurunan sistem imun, gangguan konsentrasi, serta mengacaukan hormon pengatur rasa lapar (ghrelin). Disarankan untuk memajukan jam tidur malam ini dan menjauhi gadget sebelum tidur."],
+                            ['role' => 'user', 'content' => "Input Durasi: 9.2 jam"],
+                            ['role' => 'assistant', 'content' => "fair#Durasi tidur 9.2 jam tergolong berlebihan (oversleeping) yang dapat memicu sakit kepala akibat gangguan neurotransmiter serta membuat tubuh terasa lemas sepanjang hari. Disarankan untuk memasang alarm di pagi hari dan berolahraga ringan setelah bangun."],
+                            // Real input user saat ini
+                            ['role' => 'user', 'content' => "Input Durasi: {$durationRound} jam"]
+                        ],
+                        'temperature' => 0.2,
                     ]);
 
                     if ($response->successful()) {
                         $rawContent = trim($response->json()['choices'][0]['message']['content'] ?? '');
-                        $rawContent = str_replace(['```json', '```', 'json', '"', "'"], '', $rawContent);
+                        $rawContent = str_replace(['```json', '
+```', 'json', '"', "'"], '', $rawContent);
                         $rawContent = trim($rawContent);
 
                         if (strpos($rawContent, '#') !== false) {
@@ -182,26 +182,27 @@ class SleepTrackingController extends Controller
                 $aiQuality = 'excellent';
             }
 
-            $aiRecommendation = "Pola tidur diupdate. Jaga konsistensi waktu istirahat Anda.";
+            $aiRecommendation = "Pola tidur diupdate dengan durasi {$durationRound} jam. Jaga konsistensi waktu istirahat Anda.";
 
             $apiKey = config('app.groq_api_key') ?? env('GROQ_API_KEY');
             if ($apiKey) {
                 try {
-                    $prompt = "Kamu adalah spesialis kesehatan tidur klinis. Seseorang memiliki durasi tidur: {$durationRound} jam.\n" .
-                              "Tugasmu menentukan kualitas tidur dengan ATURAN MEDIS KETAT berikut:\n" .
-                              "1. Jika durasi DI BAWAH 7 jam (< 7.0), kualitas BURUK (poor)\n" .
-                              "2. Jika durasi ANTARA 7 SAMPAI 8 jam (7.0 - 8.0), kualitas IDEAL (good / excellent)\n" .
-                              "3. Jika durasi DI ATAS 8 jam (> 8.0), kualitas BERLEBIHAN (fair)\n\n" .
-                              "Jelaskan dampak medisnya bagi tubuh (menyebabkan apa) serta berikan saran konkret.\n\n" .
-                              "FORMAT RESPONS HARUS SEPERTI INI:\nkode_kualitas#Teks dampak medis dan saran langsung.";
+                    $systemInstruction = "Kamu adalah Somnologist AI. Berikan respons analisis medis tidur secara dinamis sesuai durasi yang diinput dengan format ketat: KODE_KUALITAS#ANALISIS_MEDIS_DAN_SARAN";
 
                     $response = Http::withoutVerifying()->withHeaders([
                         'Authorization' => 'Bearer ' . $apiKey,
                         'Content-Type'  => 'application/json',
                     ])->post('https://api.groq.com/openai/v1/chat/completions', [
                         'model'       => 'llama-3.1-8b-instant',
-                        'messages'    => [['role' => 'user', 'content' => $prompt]],
-                        'temperature' => 0.1,
+                        'messages'    => [
+                            ['role' => 'system', 'content' => $systemInstruction],
+                            ['role' => 'user', 'content' => "Input Durasi: 6.0 jam"],
+                            ['role' => 'assistant', 'content' => "poor#Tidur 6 jam menyebabkan metabolisme tubuh melambat dan memicu kelelahan kognitif. Disarankan tidur 30 menit lebih awal."],
+                            ['role' => 'user', 'content' => "Input Durasi: 7.5 jam"],
+                            ['role' => 'assistant', 'content' => "excellent#Durasi 7.5 jam sangat baik untuk konsolidasi memori dan kestabilan emosi. Pertahankan pola sirkadian ini."],
+                            ['role' => 'user', 'content' => "Input Durasi: {$durationRound} jam"]
+                        ],
+                        'temperature' => 0.2,
                     ]);
 
                     if ($response->successful()) {
