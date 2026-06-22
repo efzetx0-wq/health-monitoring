@@ -215,7 +215,7 @@ export default function VitalSignsPage() {
             <input
               type="number"
               name="systolic_pressure"
-              placeholder="Systolic Pressure (e.g. 120)"
+              placeholder=""Tekanan Sistolik (contoh: 120)""
               value={formData.systolic_pressure}
               onChange={handleChange}
               className="border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500"

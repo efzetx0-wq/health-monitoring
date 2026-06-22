@@ -95,12 +95,25 @@ from "./pages/MedicalChatsPage";
 
 export default function App() {
 
-    useEffect(() => {
-
-    initOneSignal();
-
-  }, []);
-
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user"); 
+    
+    if (storedUser) {
+      try {
+        const userObj = JSON.parse(storedUser);
+        const userId = userObj.id || userObj.user_id;
+        
+        
+        initOneSignal(userId);
+      } catch (error) {
+        
+        initOneSignal();
+      }
+    } else {
+      
+      initOneSignal();
+    }
+  }, []); 
   return (
 
     <Routes>
