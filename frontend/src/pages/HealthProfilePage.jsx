@@ -383,12 +383,12 @@ export default function HealthProfilePage() {
               <button
                 className="
                   w-full
-                  bg-blue
+                  bg-blue-600
                   text-white
                   p-3
                   rounded-xl
                   font-medium
-                  hover:bg-gray-800
+                  hover:bg-blue-700
                   transition
                 "
               >
