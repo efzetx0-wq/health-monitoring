@@ -1,25 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  HeartPulse,
-  Activity,
-  ShieldCheck,
-  Moon
-} from "lucide-react";
+import { HeartPulse, Activity, ShieldCheck, Moon } from "lucide-react";
 
 export default function GuestPage() {
   // 1. STATE UNTUK AUTO-HIDE NAVBAR
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // 2. STATE UNTUK CAROUSEL OTOMATIS (5 FOTO PROMOSI)
+  // 2. STATE UNTUK CAROUSEL OTOMATIS (5 FOTO PROMOSI KESEHATAN)
   const [currentSlide, setCurrentSlide] = useState(0);
   const promoImages = [
-    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1511688868355-7216ee869d42?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"
+    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", // Yoga/Meditation
+    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80", // Fitness/Gym
+    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", // Healthy Food
+    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80", // FIXED: Medical Checkup / Doctor
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"  // Running/Cardio
   ];
 
   // LOGIKA AUTO SLIDE CAROUSEL
@@ -71,26 +66,30 @@ export default function GuestPage() {
   return (
     <div className="min-h-screen bg-[#FFFEEF] text-black font-sans selection:bg-blue-500 selection:text-white pb-12">
       
-      {/* NAVBAR */}
+      {/* NAVBAR STYLE: FIXED NEO-BRUTALISM */}
       <nav className={`
         fixed top-0 left-0 right-0 z-50
         bg-white border-b-4 border-black
         transition-transform duration-300
         ${showNavbar ? "translate-y-0" : "-translate-y-full"}
       `}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          
+          {/* BARIS UTAMA: LOGO & TOMBOL AUTH */}
           <div className="flex items-center justify-between w-full">
             
+            {/* LOGO */}
             <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="bg-blue-500 text-white p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
                 <HeartPulse size={24} />
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tighter">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tighter whitespace-nowrap">
                 HEALTH.APP
               </h1>
             </div>
 
-            <div className="hidden sm:flex items-center gap-6 font-black text-sm uppercase tracking-wider sm:ml-12 sm:mr-auto">
+            {/* DESKTOP MENU (Disembunyikan di Mobile) */}
+            <div className="hidden sm:flex items-center gap-6 font-black text-sm uppercase tracking-wider ml-12 mr-auto">
               <a href="#home" className="hover:text-blue-600 transition border-b-2 border-transparent hover:border-black">Home</a>
               <a href="#features" className="hover:text-blue-600 transition border-b-2 border-transparent hover:border-black">Features</a>
               <a href="#news" className="hover:text-blue-600 transition border-b-2 border-transparent hover:border-black">News</a>
@@ -98,7 +97,8 @@ export default function GuestPage() {
               <a href="#footer" className="hover:text-blue-600 transition border-b-2 border-transparent hover:border-black">Contact</a>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* DESKTOP AUTH BUTTONS (Disembunyikan di Mobile) */}
+            <div className="hidden sm:flex items-center gap-3">
               <Link to="/login" className="border-3 border-black bg-white text-black hover:bg-gray-100 px-4 py-2 font-black text-sm uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
                 Login
               </Link>
@@ -108,20 +108,36 @@ export default function GuestPage() {
             </div>
           </div>
 
-          <div className="flex sm:hidden items-center justify-center gap-4 font-black text-xs uppercase overflow-x-auto py-1 w-full border-t-2 border-black mt-1">
-            <a href="#home" className="hover:text-blue-600">Home</a>
-            <a href="#features" className="hover:text-blue-600">Features</a>
-            <a href="#news" className="hover:text-blue-600">News</a>
-            <a href="#statistics" className="hover:text-blue-600">Statistics</a>
-            <a href="#footer" className="hover:text-blue-600">Contact</a>
+          {/* MOBILE AUTH & NAVIGATION CONTROL (Hanya Muncul di Mobile Screens) */}
+          <div className="flex sm:hidden flex-col gap-3 w-full border-t-2 border-black pt-3">
+            {/* GRID TOMBOL AUTH SUPAYA SIMETRIS & SAMA BESAR DI HP */}
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <Link to="/login" className="border-3 border-black bg-white text-black text-center py-2.5 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
+                Login
+              </Link>
+              <Link to="/register" className="border-3 border-black bg-blue-500 text-white text-center py-2.5 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
+                Sign Up
+              </Link>
+            </div>
+
+            {/* NAV MENU LINKS DI MOBILE */}
+            <div className="flex items-center justify-between font-black text-[11px] uppercase tracking-wide px-1 py-1 w-full overflow-x-auto gap-2">
+              <a href="#home" className="hover:text-blue-600 px-1">Home</a>
+              <a href="#features" className="hover:text-blue-600 px-1">Features</a>
+              <a href="#news" className="hover:text-blue-600 px-1">News</a>
+              <a href="#statistics" className="hover:text-blue-600 px-1">Stats</a>
+              <a href="#footer" className="hover:text-blue-600 px-1">Contact</a>
+            </div>
           </div>
+
         </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <section id="home" className="pt-40 pb-20 px-4 max-w-7xl mx-auto">
+      {/* HERO SECTION DENGAN AUTOMATIC CAROUSEL */}
+      <section id="home" className="pt-48 sm:pt-40 pb-20 px-4 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
+          {/* SISI KIRI: TEKS HERO */}
           <div>
             <div className="inline-block bg-yellow-300 text-black border-2 border-black px-4 py-1.5 font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6">
               ✦ SMART HEALTH MONITORING PLATFORM
@@ -135,29 +151,32 @@ export default function GuestPage() {
               Track your activities, monitor sleep, manage medical reports, and connect with medical staff using one highly optimized, robust modern system.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
-              <Link to="/register" className="bg-blue-500 text-white border-4 border-black px-8 py-4 font-black text-lg uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <Link to="/register" className="w-full sm:w-auto text-center bg-blue-500 text-white border-4 border-black px-8 py-4 font-black text-lg uppercase shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
                 Get Started Now
               </Link>
             </div>
           </div>
 
+          {/* SISI KANAN: BANNER CAROUSEL */}
           <div className="w-full">
             <div className="bg-white border-4 border-black rounded-none p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
               <div className="text-xs font-black uppercase tracking-wider mb-2 bg-gray-100 p-2 border-2 border-black inline-block">
-                 JAGA KESEHATAN ({currentSlide + 1}/5)
+                📸 LIVE PROMOTIONAL FEED ({currentSlide + 1}/5)
               </div>
               
-              <div className="relative h-64 sm:h-80 w-full border-4 border-black overflow-hidden bg-gray-300">
+              {/* IMAGE FRAME CONTAINER */}
+              <div className="relative h-64 sm:h-80 w-full border-4 border-black overflow-hidden bg-gray-200">
                 <img 
                   src={promoImages[currentSlide]} 
-                  alt="Promosi Kesehatan" 
+                  alt="Edukasi Layanan Kesehatan" 
                   className="w-full h-full object-cover transition-all duration-500"
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-3 font-bold text-xs uppercase tracking-wide border-t-2 border-black">
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-3 font-bold text-xs uppercase tracking-wide border-t-2 border-black">
                   Layanan Kesehatan Digital Terintegrasi Berbasis Web Modern
                 </div>
               </div>
 
+              {/* MANUAL NAVIGATION INDICATOR */}
               <div className="flex justify-center gap-2 mt-4">
                 {promoImages.map((_, idx) => (
                   <button 
@@ -252,7 +271,7 @@ export default function GuestPage() {
         </div>
       </section>
 
-      {/* FOOTER & CONTACT */}
+      {/* FOOTER & SOCIAL MEDIA HUB */}
       <footer id="footer" className="bg-white border-t-2 border-black pt-16 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 pb-12 border-b-4 border-black">
           
@@ -266,7 +285,7 @@ export default function GuestPage() {
               Connect With Us
             </h3>
             <div className="flex gap-4">
-              {/* FACEBOOK USING INLINE SVG */}
+              {/* FACEBOOK INLINE SVG */}
               <a 
                 href="https://facebook.com" 
                 target="_blank" 
@@ -278,7 +297,7 @@ export default function GuestPage() {
                 </svg>
               </a>
 
-              {/* INSTAGRAM USING INLINE SVG */}
+              {/* INSTAGRAM INLINE SVG */}
               <a 
                 href="https://instagram.com" 
                 target="_blank" 
@@ -292,7 +311,7 @@ export default function GuestPage() {
                 </svg>
               </a>
 
-              {/* GMAIL USING INLINE SVG */}
+              {/* GMAIL INLINE SVG */}
               <a 
                 href="mailto:yourbrand@gmail.com" 
                 className="bg-white text-black border-3 border-black p-3 hover:bg-red-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
@@ -308,7 +327,7 @@ export default function GuestPage() {
         </div>
 
         <div className="text-center py-6 text-sm font-black uppercase tracking-wide text-gray-500">
-          © 2026 HEALTH MONITORING SYSTEM. ALL RIGHTS RESERVED.
+          © 2026 HEALTH MONITORING SYSTEM
         </div>
       </footer>
 
