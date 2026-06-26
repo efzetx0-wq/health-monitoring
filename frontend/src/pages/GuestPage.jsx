@@ -161,7 +161,7 @@ export default function GuestPage() {
           <div className="w-full">
             <div className="bg-white border-4 border-black rounded-none p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
               <div className="text-xs font-black uppercase tracking-wider mb-2 bg-gray-100 p-2 border-2 border-black inline-block">
-                📸 LIVE PROMOTIONAL FEED ({currentSlide + 1}/5)
+                JAGA KESEHATAN ({currentSlide + 1}/5)
               </div>
               
               {/* IMAGE FRAME CONTAINER */}
