@@ -4,12 +4,7 @@ import {
   HeartPulse,
   Activity,
   ShieldCheck,
-  Moon,
-  ChartColumn,
-  Bell,
-  Facebook,
-  Instagram,
-  Mail
+  Moon
 } from "lucide-react";
 
 export default function GuestPage() {
@@ -271,32 +266,41 @@ export default function GuestPage() {
               Connect With Us
             </h3>
             <div className="flex gap-4">
-              {/* FACEBOOK (Lucide Icon) */}
+              {/* FACEBOOK USING INLINE SVG */}
               <a 
                 href="https://facebook.com" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="bg-white text-black border-3 border-black p-3 hover:bg-blue-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
               >
-                <Facebook size={20} />
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                </svg>
               </a>
 
-              {/* INSTAGRAM (Lucide Icon) */}
+              {/* INSTAGRAM USING INLINE SVG */}
               <a 
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="bg-white text-black border-3 border-black p-3 hover:bg-pink-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
               >
-                <Instagram size={20} />
+                <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
               </a>
 
-              {/* GMAIL / MAIL (Lucide Icon) */}
+              {/* GMAIL USING INLINE SVG */}
               <a 
                 href="mailto:yourbrand@gmail.com" 
                 className="bg-white text-black border-3 border-black p-3 hover:bg-red-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
               >
-                <Mail size={20} />
+                <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
               </a>
             </div>
           </div>
