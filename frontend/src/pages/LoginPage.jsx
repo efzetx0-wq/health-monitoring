@@ -76,7 +76,7 @@ export default function LoginPage() {
           {/* BADGE SUBTITLE */}
           <div className="flex justify-center mt-3 mb-8">
             <span className="bg-yellow-300 border-2 border-black px-3 py-1 text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              🔒 Health Account Authentication
+              Health Account Authentication
             </span>
           </div>
 
@@ -140,7 +140,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full bg-blue-500 hover:bg-blue-600 text-white border-4 border-black py-3.5 font-black text-base sm:text-lg uppercase tracking-wider shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all mt-8"
             >
-              Sign In ✦
+              Sign In 
             </button>
 
           </form>
