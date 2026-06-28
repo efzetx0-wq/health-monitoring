@@ -221,21 +221,23 @@ export default function MedicalChatsPage() {
                     }`}>
                       <p className="leading-relaxed wrap-break-word">{msg.text}</p>
                       
-                      {/* PREVIEW FOTO MEDIS + TOMBOL UNDUH */}
-                      {msg.fileUrl && msg.isImage && (
-                        <div className="mt-2 rounded-lg max-h-64 overflow-hidden relative group border border-white/10">
-                          <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
-                          <a 
-                            href={msg.fileUrl} 
-                            download 
-                            target="_blank" 
-                            rel="noreferrer" 
-                            className="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow-md"
-                          >
-                            📥 Unduh Foto
-                          </a>
-                        </div>
-                      )}
+                        {msg.fileUrl && msg.isImage && (
+                          <div className="mt-2 rounded-lg max-h-64 overflow-hidden relative group border border-white/10 cursor-pointer">
+                            {/* Foto bersih tanpa halangan */}
+                            <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
+                            
+                            {/* Tombol Unduh hanya muncul saat di-Hover (group-hover) */}
+                            <a 
+                              href={msg.fileUrl} 
+                              download 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1 shadow-md opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100"
+                            >
+                              📥 Unduh Foto
+                            </a>
+                          </div>
+                        )}
                       
                       {/* LINK LAMPIRAN BERKAS (PDF/DOCX) + TOMBOL UNDUH */}
                       {msg.fileUrl && !msg.isImage && (

@@ -173,23 +173,25 @@ export default function DoctorChatPage() {
               }`}>
                 <p className="leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.text}</p>
                 
-                {/* RENDER GAMBAR + TOMBOL UNDUH */}
-                {msg.fileUrl && msg.isImage && (
-                  <div className="mt-2 overflow-hidden rounded-lg border border-gray-300 max-h-64 relative group">
-                    <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
-                    <a 
-                      href={msg.fileUrl} 
-                      download 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="absolute bottom-2 right-2 bg-black/70 hover:bg-black text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow-md"
-                    >
-                      📥 Unduh Foto
-                    </a>
-                  </div>
-                )}
-                
-                {/* RENDER BUKAN GAMBAR (PDF/DOCX) + TOMBOL UNDUH */}
+                {/* RENDER GAMBAR + TOMBOL UNDUH TERSEMBUNYI (CLEAN VIEW) */}
+                  {msg.fileUrl && msg.isImage && (
+                    <div className="mt-2 overflow-hidden rounded-lg border border-gray-300 max-h-64 relative group cursor-pointer">
+                      {/* Foto bersih tanpa halangan */}
+                      <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
+                      
+                      {/* Tombol Unduh hanya muncul saat di-Hover (group-hover) */}
+                      <a 
+                        href={msg.fileUrl} 
+                        download 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="absolute bottom-2 right-2 bg-black/70 hover:bg-black text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center gap-1 shadow-md opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100"
+                      >
+                        📥 Unduh Foto
+                      </a>
+                    </div>
+                  )}
+          
                 {msg.fileUrl && !msg.isImage && (
                   <div className="mt-2">
                     <a 
