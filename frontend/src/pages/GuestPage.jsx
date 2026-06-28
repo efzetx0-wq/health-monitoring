@@ -46,21 +46,21 @@ export default function GuestPage() {
     {
       title: "Pentingnya Menjaga Pola Tidur 8 Jam untuk Imunitas",
       category: "Tips Kesehatan",
-      image: "https://images.unsplash.com/photo-1520206183501-b80af6103b60?w=500",
+      image: "https://source.unsplash.com/featured/?sleeping,bed",
       desc: "Riset terbaru menunjukkan tidur cukup secara konsisten memperkuat sel T pelindung tubuh dari serangan virus merugikan.",
       date: "26 Juni 2026"
     },
     {
       title: "5 Makanan Tinggi Serat yang Baik untuk Jantung Anda",
       category: "Nutrisi",
-      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
+      image: "https://source.unsplash.com/featured/?healthy-food,vegetables",
       desc: "Mengonsumsi gandum, buah beri, dan alpukat terbukti secara klinis mampu menekan kadar kolesterol jahat (LDL).",
       date: "24 Juni 2026"
     },
     {
       title: "Olahraga Kardio Ringan: Durasi Ideal per Hari",
       category: "Kebugaran",
-      image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500",
+      image: "https://source.unsplash.com/featured/?running,fitness",
       desc: "Hanya dengan berjalan cepat 20-30 menit sehari, Anda dapat memotong risiko serangan kardiovaskular hingga 40%.",
       date: "20 Juni 2026"
     }
