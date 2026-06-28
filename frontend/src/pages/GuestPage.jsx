@@ -10,11 +10,11 @@ export default function GuestPage() {
   // 2. STATE UNTUK CAROUSEL OTOMATIS (5 FOTO PROMOSI KESEHATAN)
   const [currentSlide, setCurrentSlide] = useState(0);
   const promoImages = [
-    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", // Yoga/Meditation
-    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80", // Fitness/Gym
-    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", // Healthy Food
-    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80", // FIXED: Medical Checkup / Doctor
-    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"  // Running/Cardio
+    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", 
+    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80", 
+    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", 
+    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80", 
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"  
   ];
 
   // LOGIKA AUTO SLIDE CAROUSEL
@@ -41,23 +41,26 @@ export default function GuestPage() {
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY]);
 
-  // DATA BERITA KESEHATAN
+  // DATA BERITA KESEHATAN DENGAN FOTO DATASET
   const healthNews = [
     {
       title: "Pentingnya Menjaga Pola Tidur 8 Jam untuk Imunitas",
       category: "Tips Kesehatan",
+      image: "https://images.unsplash.com/photo-1511295742364-92b9345f6852?auto=format&fit=crop&w=600&q=80",
       desc: "Riset terbaru menunjukkan tidur cukup secara konsisten memperkuat sel T pelindung tubuh dari serangan virus merugikan.",
       date: "26 Juni 2026"
     },
     {
       title: "5 Makanan Tinggi Serat yang Baik untuk Jantung Anda",
       category: "Nutrisi",
+      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
       desc: "Mengonsumsi gandum, buah beri, dan alpukat terbukti secara klinis mampu menekan kadar kolesterol jahat (LDL).",
       date: "24 Juni 2026"
     },
     {
-      title: "Olahraga Kardio Ringan: Berapa Durasi Ideal per Hari?",
+      title: "Olahraga Kardio Ringan: Durasi Ideal per Hari",
       category: "Kebugaran",
+      image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80",
       desc: "Hanya dengan berjalan cepat 20-30 menit sehari, Anda dapat memotong risiko serangan kardiovaskular hingga 40%.",
       date: "20 Juni 2026"
     }
@@ -73,17 +76,17 @@ export default function GuestPage() {
         transition-transform duration-300
         ${showNavbar ? "translate-y-0" : "-translate-y-full"}
       `}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           
-          {/* BARIS UTAMA: LOGO & TOMBOL AUTH */}
+          {/* BARIS UTAMA: LOGO & TOMBOL AUTH DI POJOK KANAN ATAS PADA MOBILE */}
           <div className="flex items-center justify-between w-full">
             
             {/* LOGO */}
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
-                <HeartPulse size={24} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-blue-500 text-white p-1.5 sm:p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shrink-0">
+                <HeartPulse size={20} className="sm:w-6 sm:h-6" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tighter whitespace-nowrap">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tighter whitespace-nowrap">
                 HEALTH.APP
               </h1>
             </div>
@@ -97,44 +100,32 @@ export default function GuestPage() {
               <a href="#footer" className="hover:text-blue-600 transition border-b-2 border-transparent hover:border-black">Contact</a>
             </div>
 
-            {/* DESKTOP AUTH BUTTONS (Disembunyikan di Mobile) */}
-            <div className="hidden sm:flex items-center gap-3">
-              <Link to="/login" className="border-3 border-black bg-white text-black hover:bg-gray-100 px-4 py-2 font-black text-sm uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+            {/* AUTH BUTTONS: POSISI POJOK KANAN ATAS (Responsif Mobile & Desktop) */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link to="/login" className="border-2 sm:border-3 border-black bg-white text-black text-center px-2.5 py-1 sm:px-4 sm:py-2 font-black text-xs sm:text-sm uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
                 Login
               </Link>
-              <Link to="/register" className="border-3 border-black bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 font-black text-sm uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+              <Link to="/register" className="border-2 sm:border-3 border-black bg-blue-500 text-white text-center px-2.5 py-1 sm:px-4 sm:py-2 font-black text-xs sm:text-sm uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
                 Sign Up
               </Link>
             </div>
+
           </div>
 
-          {/* MOBILE AUTH & NAVIGATION CONTROL (Hanya Muncul di Mobile Screens) */}
-          <div className="flex sm:hidden flex-col gap-3 w-full border-t-2 border-black pt-3">
-            {/* GRID TOMBOL AUTH SUPAYA SIMETRIS & SAMA BESAR DI HP */}
-            <div className="grid grid-cols-2 gap-3 w-full">
-              <Link to="/login" className="border-3 border-black bg-white text-black text-center py-2.5 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
-                Login
-              </Link>
-              <Link to="/register" className="border-3 border-black bg-blue-500 text-white text-center py-2.5 font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all">
-                Sign Up
-              </Link>
-            </div>
-
-            {/* NAV MENU LINKS DI MOBILE */}
-            <div className="flex items-center justify-between font-black text-[11px] uppercase tracking-wide px-1 py-1 w-full overflow-x-auto gap-2">
-              <a href="#home" className="hover:text-blue-600 px-1">Home</a>
-              <a href="#features" className="hover:text-blue-600 px-1">Features</a>
-              <a href="#news" className="hover:text-blue-600 px-1">News</a>
-              <a href="#statistics" className="hover:text-blue-600 px-1">Stats</a>
-              <a href="#footer" className="hover:text-blue-600 px-1">Contact</a>
-            </div>
+          {/* NAV MENU LINKS DI MOBILE (Hanya sebaris menu pelengkap tanpa garis ganda tebal) */}
+          <div className="flex sm:hidden items-center justify-between font-black text-[10px] uppercase tracking-wide w-full overflow-x-auto gap-2 pt-1 border-t border-gray-200">
+            <a href="#home" className="hover:text-blue-600 px-1">Home</a>
+            <a href="#features" className="hover:text-blue-600 px-1">Features</a>
+            <a href="#news" className="hover:text-blue-600 px-1">News</a>
+            <a href="#statistics" className="hover:text-blue-600 px-1">Stats</a>
+            <a href="#footer" className="hover:text-blue-600 px-1">Contact</a>
           </div>
 
         </div>
       </nav>
 
       {/* HERO SECTION DENGAN AUTOMATIC CAROUSEL */}
-      <section id="home" className="pt-48 sm:pt-40 pb-20 px-4 max-w-7xl mx-auto">
+      <section id="home" className="pt-36 sm:pt-40 pb-20 px-4 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           {/* SISI KIRI: TEKS HERO */}
@@ -161,7 +152,7 @@ export default function GuestPage() {
           <div className="w-full">
             <div className="bg-white border-4 border-black rounded-none p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
               <div className="text-xs font-black uppercase tracking-wider mb-2 bg-gray-100 p-2 border-2 border-black inline-block">
-                JAGA KESEHATAN ({currentSlide + 1}/5)
+                📸 LIVE PROMOTIONAL FEED ({currentSlide + 1}/5)
               </div>
               
               {/* IMAGE FRAME CONTAINER */}
@@ -220,7 +211,7 @@ export default function GuestPage() {
         </div>
       </section>
 
-      {/* BERITA KESEHATAN SECTION */}
+      {/* BERITA KESEHATAN SECTION (DENGAN FOTO DAN PENJELASAN DI BAWAHNYA) */}
       <section id="news" className="py-20 border-t-4 border-black bg-white px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -232,21 +223,36 @@ export default function GuestPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {healthNews.map((news, index) => (
-              <div key={index} className="bg-[#FFFEEF] border-4 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-                <div>
-                  <span className="bg-blue-500 text-white font-black text-xs uppercase px-2 py-1 border-2 border-black inline-block mb-3">
-                    {news.category}
-                  </span>
-                  <h3 className="text-xl font-black uppercase hover:text-blue-600 transition duration-200 mb-2">
-                    {news.title}
-                  </h3>
-                  <p className="font-semibold text-gray-600 text-sm leading-relaxed mb-4">
-                    {news.desc}
-                  </p>
+              <div key={index} className="bg-[#FFFEEF] border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden">
+                
+                {/* 1. BAGIAN ATAS: FOTO BERITA */}
+                <div className="h-48 w-full border-b-4 border-black overflow-hidden bg-gray-200">
+                  <img 
+                    src={news.image} 
+                    alt={news.title} 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <div className="border-t-2 border-black pt-3 text-xs font-black text-gray-500 uppercase tracking-wider">
-                  🗓️ Published: {news.date}
+
+                {/* 2. BAGIAN BAWAH: KONTEN / PENJELASAN */}
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <span className="bg-blue-500 text-white font-black text-xs uppercase px-2 py-1 border-2 border-black inline-block mb-3">
+                      {news.category}
+                    </span>
+                    <h3 className="text-xl font-black uppercase hover:text-blue-600 transition duration-200 mb-3">
+                      {news.title}
+                    </h3>
+                    <p className="font-semibold text-gray-600 text-sm leading-relaxed mb-6">
+                      {news.desc}
+                    </p>
+                  </div>
+                  
+                  <div className="border-t-2 border-black pt-3 text-xs font-black text-gray-500 uppercase tracking-wider">
+                    🗓️ Published: {news.date}
+                  </div>
                 </div>
+
               </div>
             ))}
           </div>
@@ -285,37 +291,19 @@ export default function GuestPage() {
               Connect With Us
             </h3>
             <div className="flex gap-4">
-              {/* FACEBOOK INLINE SVG */}
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="bg-white text-black border-3 border-black p-3 hover:bg-blue-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
-              >
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="bg-white text-black border-3 border-black p-3 hover:bg-blue-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center">
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
                 </svg>
               </a>
-
-              {/* INSTAGRAM INLINE SVG */}
-              <a 
-                href="https://instagram.com" 
-                target="_blank" 
-                rel="noreferrer" 
-                className="bg-white text-black border-3 border-black p-3 hover:bg-pink-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
-              >
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="bg-white text-black border-3 border-black p-3 hover:bg-pink-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center">
                 <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                 </svg>
               </a>
-
-              {/* GMAIL INLINE SVG */}
-              <a 
-                href="mailto:yourbrand@gmail.com" 
-                className="bg-white text-black border-3 border-black p-3 hover:bg-red-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center"
-              >
+              <a href="mailto:yourbrand@gmail.com" className="bg-white text-black border-3 border-black p-3 hover:bg-red-500 hover:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center">
                 <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                   <polyline points="22,6 12,13 2,6"></polyline>
@@ -327,7 +315,7 @@ export default function GuestPage() {
         </div>
 
         <div className="text-center py-6 text-sm font-black uppercase tracking-wide text-gray-500">
-          © 2026 HEALTH MONITORING SYSTEM
+          © 2026 HEALTH MONITORING SYSTEM. ALL RIGHTS RESERVED.
         </div>
       </footer>
 
