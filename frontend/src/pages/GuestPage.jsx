@@ -10,11 +10,11 @@ export default function GuestPage() {
   // 2. STATE UNTUK CAROUSEL OTOMATIS (5 FOTO PROMOSI KESEHATAN)
   const [currentSlide, setCurrentSlide] = useState(0);
   const promoImages = [
-    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80", 
-    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80", 
-    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80", 
-    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80", 
-    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80"  
+    "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800", 
+    "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800", 
+    "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800", 
+    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800", 
+    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800"  
   ];
 
   // LOGIKA AUTO SLIDE CAROUSEL
@@ -41,26 +41,26 @@ export default function GuestPage() {
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY]);
 
-  // DATA BERITA KESEHATAN DENGAN FOTO DATASET
+  // DATA BERITA KESEHATAN DENGAN FOTO DATASET YANG AMAN & PASTI MUNCUL
   const healthNews = [
     {
       title: "Pentingnya Menjaga Pola Tidur 8 Jam untuk Imunitas",
       category: "Tips Kesehatan",
-      image: "https://images.unsplash.com/photo-1511295742364-92b9345f6852?auto=format&fit=crop&w=600&q=80",
+      image: "https://images.unsplash.com/photo-1511295742364-92b9345f6852?w=500",
       desc: "Riset terbaru menunjukkan tidur cukup secara konsisten memperkuat sel T pelindung tubuh dari serangan virus merugikan.",
       date: "26 Juni 2026"
     },
     {
       title: "5 Makanan Tinggi Serat yang Baik untuk Jantung Anda",
       category: "Nutrisi",
-      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
+      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500",
       desc: "Mengonsumsi gandum, buah beri, dan alpukat terbukti secara klinis mampu menekan kadar kolesterol jahat (LDL).",
       date: "24 Juni 2026"
     },
     {
       title: "Olahraga Kardio Ringan: Durasi Ideal per Hari",
       category: "Kebugaran",
-      image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80",
+      image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500",
       desc: "Hanya dengan berjalan cepat 20-30 menit sehari, Anda dapat memotong risiko serangan kardiovaskular hingga 40%.",
       date: "20 Juni 2026"
     }
@@ -131,7 +131,7 @@ export default function GuestPage() {
           {/* SISI KIRI: TEKS HERO */}
           <div>
             <div className="inline-block bg-yellow-300 text-black border-2 border-black px-4 py-1.5 font-black uppercase text-xs sm:text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mb-6">
-              ✦ SMART HEALTH MONITORING PLATFORM
+              SMART HEALTH MONITORING PLATFORM
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-gray-900 leading-none uppercase">
               Monitor Your Health <br />
@@ -152,7 +152,7 @@ export default function GuestPage() {
           <div className="w-full">
             <div className="bg-white border-4 border-black rounded-none p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
               <div className="text-xs font-black uppercase tracking-wider mb-2 bg-gray-100 p-2 border-2 border-black inline-block">
-                📸 LIVE PROMOTIONAL FEED ({currentSlide + 1}/5)
+                Jaga Kesehatan ({currentSlide + 1}/5)
               </div>
               
               {/* IMAGE FRAME CONTAINER */}
