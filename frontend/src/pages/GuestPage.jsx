@@ -41,12 +41,12 @@ export default function GuestPage() {
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY]);
 
-  // DATA BERITA KESEHATAN DENGAN FOTO DATASET YANG AMAN & PASTI MUNCUL
+  
   const healthNews = [
     {
       title: "Pentingnya Menjaga Pola Tidur 8 Jam untuk Imunitas",
       category: "Tips Kesehatan",
-      image: "https://images.unsplash.com/photo-1511295742364-92b9345f6852?w=500",
+      image: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=500",
       desc: "Riset terbaru menunjukkan tidur cukup secara konsisten memperkuat sel T pelindung tubuh dari serangan virus merugikan.",
       date: "26 Juni 2026"
     },
