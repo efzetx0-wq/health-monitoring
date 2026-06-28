@@ -29,7 +29,6 @@ export default function MedicalChatsPage() {
     fetchActivePatients();
   }, []);
 
-  // POLLING UTAMA UNTUK DOKTER: Mengambil pesan dari pasien terpilih setiap 3 detik
   useEffect(() => {
     if (!selectedPatient) return;
 
@@ -52,7 +51,7 @@ export default function MedicalChatsPage() {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // Polling 3 detik
+    const interval = setInterval(fetchMessages, 3000);
 
     return () => clearInterval(interval);
   }, [selectedPatient]);
@@ -82,7 +81,7 @@ export default function MedicalChatsPage() {
     if (triggerMobileView) {
       setShowChatOnMobile(true);
     }
-    setMessages([]); // Kosongkan sementara sampai polling data dari DB masuk
+    setMessages([]);
   };
 
   const handleSendMessage = async (e) => {
@@ -94,7 +93,7 @@ export default function MedicalChatsPage() {
         receiver_id: selectedPatient.id,
         message: inputText
       });
-      setInputText("");
+      inputText("");
       setShowAttachMenu(false);
     } catch (err) {
       console.log("Error sending doctor reply:", err);
@@ -111,15 +110,19 @@ export default function MedicalChatsPage() {
     if (!file) return;
 
     const isImage = file.type.startsWith("image/");
+    
+    // Menggunakan FormData agar berkas fisik asli dikirim ke server/backend
+    const formData = new FormData();
+    formData.append("receiver_id", selectedPatient.id);
+    formData.append("is_image", isImage ? 1 : 0);
+    formData.append("file", file); // Sesuaikan key 'file' dengan nama field di backend API Anda
+    formData.append("message", isImage ? "Mengirim Foto" : `Mengirim Dokumen: ${file.name}`);
+
     try {
-      await sendChatMessage({
-        receiver_id: selectedPatient.id,
-        message: isImage ? `📷 Mengirim Foto: ${file.name}` : `📄 Mengirim Dokumen: ${file.name}`,
-        file_url: URL.createObjectURL(file),
-        is_image: isImage
-      });
+      await sendChatMessage(formData);
+      e.target.value = ""; // Reset input file
     } catch (err) {
-      console.log(err);
+      console.log("Gagal mengunggah berkas medis:", err);
     }
   };
 
@@ -147,7 +150,8 @@ export default function MedicalChatsPage() {
 
       <div className="flex-1 flex flex-col md:flex-row h-screen overflow-hidden">
         
-        <div className={`w-full md:w-80 border-r border-gray-850 bg-[#111827] flex flex-col h-full ${showChatOnMobile ? "hidden md:flex" : "flex"}`}>
+        {/* PANEL DAFTAR PASIEN */}
+        <div className="w-full md:w-80 border-r border-gray-850 bg-[#111827] flex flex-col h-full ...">
           <div className="p-5 border-b border-gray-800">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <MessageSquare className="text-cyan-400" size={20} />
@@ -185,6 +189,7 @@ export default function MedicalChatsPage() {
           </div>
         </div>
 
+        {/* RUANG UTAMA PERCAKAPAN */}
         <div className={`flex-1 flex flex-col h-full bg-[#0f172a] ${showChatOnMobile ? "flex" : "hidden md:flex"}`}>
           {selectedPatient ? (
             <>
@@ -205,6 +210,7 @@ export default function MedicalChatsPage() {
                 </div>
               </div>
 
+              {/* AREA PESAN CHAT */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-950/20">
                 {messages.map(msg => (
                   <div key={msg.id} className={`flex ${msg.sender === "doctor" ? "justify-end" : "justify-start"}`}>
@@ -214,8 +220,38 @@ export default function MedicalChatsPage() {
                         : "bg-[#111827] text-gray-200 border border-gray-800 rounded-tl-none"
                     }`}>
                       <p className="leading-relaxed wrap-break-word">{msg.text}</p>
-                      {msg.fileUrl && msg.isImage && <img src={msg.fileUrl} alt="Medis" className="mt-2 rounded-lg max-h-48 object-cover border border-white/10" />}
-                      {msg.fileUrl && !msg.isImage && <a href={msg.fileUrl} target="_blank" rel="noreferrer" className="block mt-2 text-xs font-semibold underline text-cyan-300 hover:text-white">Buka Lampiran Medis</a>}
+                      
+                      {/* PREVIEW FOTO MEDIS + TOMBOL UNDUH */}
+                      {msg.fileUrl && msg.isImage && (
+                        <div className="mt-2 rounded-lg max-h-64 overflow-hidden relative group border border-white/10">
+                          <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
+                          <a 
+                            href={msg.fileUrl} 
+                            download 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="absolute bottom-2 right-2 bg-cyan-600 hover:bg-cyan-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow-md"
+                          >
+                            📥 Unduh Foto
+                          </a>
+                        </div>
+                      )}
+                      
+                      {/* LINK LAMPIRAN BERKAS (PDF/DOCX) + TOMBOL UNDUH */}
+                      {msg.fileUrl && !msg.isImage && (
+                        <div className="mt-2">
+                          <a 
+                            href={msg.fileUrl} 
+                            download 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="inline-flex items-center gap-1.5 font-semibold underline text-xs text-cyan-300 hover:text-cyan-100"
+                          >
+                            📄 Unduh Lampiran Medis
+                          </a>
+                        </div>
+                      )}
+                      
                       {msg.linkUrl && <a href={msg.linkUrl} target="_blank" rel="noreferrer" className="block mt-1 font-bold underline text-amber-300 hover:text-amber-200 break-all">{msg.linkUrl}</a>}
                       <span className={`block text-[10px] mt-1.5 text-right ${msg.sender === "doctor" ? "text-cyan-200" : "text-gray-500"}`}>{msg.time}</span>
                     </div>
@@ -224,11 +260,12 @@ export default function MedicalChatsPage() {
                 <div ref={chatEndRef} />
               </div>
 
+              {/* BAR INPUT PADA SISI PANEL MEDIS */}
               <div className="p-3 bg-[#111827] border-t border-gray-800 relative">
                 {showAttachMenu && (
                   <div className="absolute bottom-16 left-4 bg-[#1f2937] border border-gray-800 rounded-2xl p-1.5 flex flex-col gap-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150 shadow-xl">
                     <button type="button" onClick={handleAttachmentClick} className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full">
-                      <ImageIcon size={14} className="text-cyan-400" /> Upload Foto
+                      <ImageIcon size={14} className="text-cyan-400" /> Upload Foto / File
                     </button>
                     <button type="button" onClick={handleLinkInsert} className="flex items-center gap-2.5 text-xs font-medium text-gray-200 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer text-left w-full">
                       <FileText size={14} className="text-amber-400" /> Kirim Link Rujukan
@@ -236,7 +273,7 @@ export default function MedicalChatsPage() {
                   </div>
                 )}
 
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf" />
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
 
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                   <button type="button" onClick={() => setShowAttachMenu(!showAttachMenu)} className={`p-3 rounded-xl transition-all cursor-pointer text-[#9ca3af] ${showAttachMenu ? "bg-gray-800 text-white rotate-45" : "bg-[#1f2937] hover:bg-gray-800"}`}>

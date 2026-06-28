@@ -112,15 +112,19 @@ export default function DoctorChatPage() {
     if (!file) return;
 
     const isImage = file.type.startsWith("image/");
+    
+    // Menggunakan FormData agar berkas fisik asli dikirim ke server/backend
+    const formData = new FormData();
+    formData.append("receiver_id", doctorId);
+    formData.append("is_image", isImage ? 1 : 0);
+    formData.append("file", file); // Sesuaikan key 'file' dengan nama field di backend API Anda
+    formData.append("message", isImage ? "Mengirim Foto" : `Mengirim Dokumen: ${file.name}`);
+
     try {
-      await sendChatMessage({
-        receiver_id: doctorId,
-        message: isImage ? `📷 Mengirim Foto: ${file.name}` : `📄 Mengirim Dokumen: ${file.name}`,
-        file_url: URL.createObjectURL(file),
-        is_image: isImage
-      });
+      await sendChatMessage(formData);
+      e.target.value = ""; // Reset input file
     } catch (err) {
-      console.log(err);
+      console.log("Gagal mengunggah berkas:", err);
     }
   };
 
@@ -141,10 +145,9 @@ export default function DoctorChatPage() {
 
   return (
     <MainLayout>
-      {/* Container utama dengan tema putih terang */}
       <div className="flex flex-col h-[calc(100dvh-76px)] md:h-[calc(100vh-100px)] max-w-4xl mx-auto p-2 sm:p-4 overflow-hidden bg-gray-50 text-gray-800">
         
-        {/* HEADER CHAT (Biru Terang / Blue 600) */}
+        {/* HEADER CHAT */}
         <div className="bg-blue-600 p-3.5 rounded-t-2xl shadow-md border border-blue-700 flex items-center gap-3 shrink-0">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-blue-700 rounded-xl text-blue-100 hover:text-white transition-all cursor-pointer">
             <ArrowLeft size={18} />
@@ -159,7 +162,7 @@ export default function DoctorChatPage() {
           </div>
         </div>
 
-        {/* AREA CHAT BUBBLE (Latar Belakang Putih Polos) */}
+        {/* AREA CHAT BUBBLE */}
         <div className="flex-1 overflow-y-auto p-4 bg-white space-y-4 border-x border-gray-200">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
@@ -170,16 +173,35 @@ export default function DoctorChatPage() {
               }`}>
                 <p className="leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.text}</p>
                 
+                {/* RENDER GAMBAR + TOMBOL UNDUH */}
                 {msg.fileUrl && msg.isImage && (
-                  <div className="mt-2 overflow-hidden rounded-lg border border-gray-300 max-h-48">
-                    <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover" />
+                  <div className="mt-2 overflow-hidden rounded-lg border border-gray-300 max-h-64 relative group">
+                    <img src={msg.fileUrl} alt="Medis" className="w-full h-full object-cover max-h-64" />
+                    <a 
+                      href={msg.fileUrl} 
+                      download 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="absolute bottom-2 right-2 bg-black/70 hover:bg-black text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shadow-md"
+                    >
+                      📥 Unduh Foto
+                    </a>
                   </div>
                 )}
                 
+                {/* RENDER BUKAN GAMBAR (PDF/DOCX) + TOMBOL UNDUH */}
                 {msg.fileUrl && !msg.isImage && (
-                  <a href={msg.fileUrl} target="_blank" rel="noreferrer" className={`block mt-2 text-xs font-semibold underline ${msg.sender === "user" ? "text-blue-100" : "text-blue-600"}`}>
-                    Buka Lampiran Berkas
-                  </a>
+                  <div className="mt-2">
+                    <a 
+                      href={msg.fileUrl} 
+                      download 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className={`inline-flex items-center gap-1.5 font-bold underline text-xs ${msg.sender === "user" ? "text-blue-100 hover:text-white" : "text-blue-600 hover:text-blue-800"}`}
+                    >
+                      📄 Unduh Lampiran Berkas
+                    </a>
+                  </div>
                 )}
                 
                 {msg.linkUrl && (
@@ -197,12 +219,12 @@ export default function DoctorChatPage() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* INPUT BAR BAWAH (Latar Belakang Abu-abu Sangat Terang) */}
+        {/* INPUT BAR BAWAH */}
         <div className="bg-gray-50 p-3 rounded-b-2xl border-x border-b border-gray-200 relative shrink-0">
           {showMenu && (
             <div className="absolute bottom-16 left-4 bg-white shadow-xl border border-gray-200 rounded-2xl p-1.5 flex flex-col gap-0.5 z-50">
               <button type="button" onClick={handleAttachmentClick} className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 px-4 py-2.5 rounded-xl cursor-pointer w-full text-left">
-                <span className="text-blue-500"><ImageIcon size={16} /></span> Upload Foto
+                <span className="text-blue-500"><ImageIcon size={16} /></span> Upload Foto / File
               </button>
               <button type="button" onClick={handleLinkInsert} className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 px-4 py-2.5 rounded-xl cursor-pointer w-full text-left">
                 <span className="text-blue-600"><FileText size={16} /></span> Kirim Link Dokumen
@@ -210,7 +232,7 @@ export default function DoctorChatPage() {
             </div>
           )}
 
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,application/msword" />
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
 
           <form onSubmit={handleSendMessage} className="flex items-center gap-2">
             <button 
