@@ -41,26 +41,25 @@ export default function GuestPage() {
     return () => window.removeEventListener("scroll", controlNavbar);
   }, [lastScrollY]);
 
-  
   const healthNews = [
     {
       title: "Pentingnya Menjaga Pola Tidur 8 Jam untuk Imunitas",
       category: "Tips Kesehatan",
-      image: "https://source.unsplash.com/featured/?sleeping,bed",
+      image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=500&q=80",
       desc: "Riset terbaru menunjukkan tidur cukup secara konsisten memperkuat sel T pelindung tubuh dari serangan virus merugikan.",
       date: "26 Juni 2026"
     },
     {
       title: "5 Makanan Tinggi Serat yang Baik untuk Jantung Anda",
       category: "Nutrisi",
-      image: "https://source.unsplash.com/featured/?healthy-food,vegetables",
+      image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=80",
       desc: "Mengonsumsi gandum, buah beri, dan alpukat terbukti secara klinis mampu menekan kadar kolesterol jahat (LDL).",
       date: "24 Juni 2026"
     },
     {
       title: "Olahraga Kardio Ringan: Durasi Ideal per Hari",
       category: "Kebugaran",
-      image: "https://source.unsplash.com/featured/?running,fitness",
+      image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=500&q=80",
       desc: "Hanya dengan berjalan cepat 20-30 menit sehari, Anda dapat memotong risiko serangan kardiovaskular hingga 40%.",
       date: "20 Juni 2026"
     }
