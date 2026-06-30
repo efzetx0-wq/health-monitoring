@@ -186,7 +186,7 @@ export default function RegisterPage() {
                 onClick={verifyOtp}
                 className="w-full bg-green-400 hover:bg-green-500 text-black border-4 border-black py-3.5 font-black text-base sm:text-lg uppercase tracking-wider shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
               >
-                Verify OTP ⚡
+                Verify OTP
               </button>
 
             </div>
